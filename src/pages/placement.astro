@@ -1,0 +1,16 @@
+---
+import PlacementTest from "~/components/PlacementTest.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+
+<BaseLayout pageTitle="Placement">
+  <section class="mx-auto w-full max-w-5xl px-6 py-12">
+    <!--
+      client:only="svelte": PlacementTest reads/writes IndexedDB (seeding), which
+      only exists in the browser. With no onComplete prop it navigates to /app when
+      finished. This standalone mount is the re-take entry point linked from
+      Settings; the same component also runs inline on first run in the Reviewer.
+    -->
+    <PlacementTest client:only="svelte" />
+  </section>
+</BaseLayout>

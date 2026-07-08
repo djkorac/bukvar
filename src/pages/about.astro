@@ -1,0 +1,70 @@
+---
+import Icon from "~/components/Icon.svelte";
+import SrText from "~/components/SrText.astro";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+const description =
+  "Bukvar is a free, open-source, local-first app for learning the Serbian Cyrillic alphabet and vocabulary with spaced repetition.";
+
+const points = [
+  {
+    title: "Spaced repetition",
+    body: "FSRS resurfaces every letter and word at widening intervals as it sticks. New words are paced a handful a day, so you're never flooded.",
+  },
+  {
+    title: "Read Cyrillic first",
+    body: "The azbuka comes with mnemonics for the 'false friend' letters (`В, Н, Р, С, У, Х`). Prompts can be shown in `Ћирилица` or Latinica, switchable anytime.",
+  },
+  {
+    title: "Yours, on your device",
+    body: "No account, no server, no tracking. Everything lives in your browser; it installs as an app and works offline. Export a backup anytime.",
+  },
+  {
+    title: "Open source",
+    body: "Code and the whole word corpus are GPL-3.0. Anyone can read it, run it, self-host it, or improve the deck.",
+  },
+];
+---
+
+<BaseLayout pageTitle="About" description={description}>
+  <section class="mx-auto w-full max-w-3xl px-6 py-16">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      About
+    </p>
+    <h1 class="text-4xl font-bold">An open way to learn Serbian</h1>
+    <p class="mt-4 text-lg text-fg-muted">
+      <span class="font-semibold text-fg">Bukvar</span> (<span lang="sr">буквар</span>, a first-grade
+      ABC primer) teaches the Serbian Cyrillic alphabet and high-frequency
+      vocabulary in five-minute daily sessions. It's free, open, and yours to
+      keep.
+    </p>
+
+    <div class="mt-10 grid gap-6 sm:grid-cols-2">
+      {
+        points.map((p) => (
+          <div class="rounded-xl border border-border bg-bg-elev p-6">
+            <h2 class="mb-2 text-lg font-semibold">{p.title}</h2>
+            <p class="text-sm leading-relaxed text-fg-muted">
+              <SrText text={p.body} />
+            </p>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a
+        href="/app"
+        class="btn-primary px-6 py-3"
+      >
+        Start practising
+      </a>
+      <a
+        href="https://github.com/djkorac/bukvar"
+        class="btn-secondary inline-flex items-center gap-2 px-6 py-3"
+      >
+        <Icon name="github" size={18} /> Source on GitHub
+      </a>
+    </div>
+  </section>
+</BaseLayout>

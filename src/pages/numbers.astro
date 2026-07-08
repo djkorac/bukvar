@@ -1,0 +1,116 @@
+---
+import NumberDrill from "~/components/NumberDrill.svelte";
+import SrText from "~/components/SrText.astro";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { numberToCyrillic } from "~/lib/content/number-name";
+import { toLatin } from "~/lib/content/transliterate";
+
+const description =
+  "Practise reading Serbian numbers out loud. A drill for composed numbers like седамдесет три (73), with a reference showing how Serbian builds them from the digits.";
+
+// The reference rows are generated from the same rules the drill uses, so they
+// can't drift from what the drill teaches.
+const row = (value: number) => {
+  const cyrillic = numberToCyrillic(value);
+  return {
+    value,
+    cyrillic,
+    latin: toLatin(cyrillic),
+    grouped: value.toLocaleString("en-US"),
+  };
+};
+
+const units = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(row);
+const tens = [10, 20, 30, 40, 50, 60, 70, 80, 90].map(row);
+const hundreds = [100, 200, 300, 400, 500, 600, 700, 800, 900].map(row);
+const examples = [21, 47, 73, 108, 365, 1000, 2024, 12345, 999999].map(row);
+
+const groups = [
+  { title: "Ones", note: "The single digits, 1 to 9.", rows: units },
+  {
+    title: "Tens",
+    note: "`десет` is ten; the higher tens end in -`десет`.",
+    rows: tens,
+  },
+  {
+    title: "Hundreds",
+    note: "`сто` is a hundred; `двеста` and `триста` break the pattern.",
+    rows: hundreds,
+  },
+];
+---
+
+<BaseLayout pageTitle="Serbian numbers" description={description}>
+  <section class="mx-auto w-full max-w-5xl px-6 py-16">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Count in Serbian
+    </p>
+    <h1 class="max-w-3xl text-4xl font-bold">Reading numbers</h1>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+      Knowing <span lang="sr">седам</span> (7) and <span lang="sr">десет</span> (10)
+      isn't the same as reading <span lang="sr">седамдесет три</span> (73). Serbian
+      strings the parts together in the order you write the digits, with no "and"
+      in between, so once you know the parts you can read almost any number.
+    </p>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-16">
+    <h2 class="mb-2 text-2xl font-bold">Practise reading</h2>
+    <p class="mb-6 text-fg-muted">
+      A number appears. Pick how you'd say it, or use keys 1-4. Start small and
+      work up to bigger numbers.
+    </p>
+    <NumberDrill client:only="svelte" />
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-16">
+    <h2 class="mb-6 text-2xl font-bold">How they build up</h2>
+    <div class="grid gap-6 lg:grid-cols-3">
+      {
+        groups.map((group) => (
+          <div>
+            <h3 class="font-semibold">{group.title}</h3>
+            <p class="mb-3 text-sm text-fg-muted">
+              <SrText text={group.note} />
+            </p>
+            <ul class="flex flex-col gap-1">
+              {group.rows.map((r) => (
+                <li class="flex items-baseline justify-between gap-3 rounded-md border border-border bg-bg-elev px-3 py-2">
+                  <span class="text-sm tabular-nums text-fg-muted">
+                    {r.grouped}
+                  </span>
+                  <span class="min-w-0 flex-1 text-right">
+                    <span lang="sr" class="font-medium">{r.cyrillic}</span>
+                    <span class="ml-2 text-sm text-fg-muted">{r.latin}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-24">
+    <h2 class="mb-2 text-2xl font-bold">Putting it together</h2>
+    <p class="mb-6 text-fg-muted">
+      The same parts combined into bigger numbers. The word for thousand shifts
+      between <span lang="sr">хиљаду</span>, <span lang="sr">хиљаде</span>, and
+      <span lang="sr">хиљада</span> depending on the number in front of it.
+    </p>
+    <ul class="grid gap-2 sm:grid-cols-2">
+      {
+        examples.map((r) => (
+          <li class="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-bg-elev px-4 py-3">
+            <span class="text-lg font-semibold tabular-nums">{r.grouped}</span>
+            <span class="min-w-0 flex-1 text-right">
+              <span lang="sr" class="font-medium">{r.cyrillic}</span>
+              <span class="ml-2 text-sm text-fg-muted">{r.latin}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>

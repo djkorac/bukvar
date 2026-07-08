@@ -1,0 +1,65 @@
+---
+import AlphabetDrill from "~/components/AlphabetDrill.svelte";
+import SrAuto from "~/components/SrAuto.astro";
+import { alphabet } from "~/data/alphabet";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { letterSlug } from "~/lib/content/corpus";
+
+const description =
+  "The Serbian Cyrillic alphabet (azbuka): all 30 letters with their Latin equivalents, pronunciation, mnemonics, and example words, plus a recognition drill.";
+---
+
+<BaseLayout pageTitle="Serbian Cyrillic alphabet" description={description}>
+  <section class="mx-auto w-full max-w-5xl px-6 py-16">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Read Cyrillic
+    </p>
+    <h1 class="max-w-3xl text-4xl font-bold">The Serbian azbuka</h1>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+      Serbian Cyrillic has 30 letters, each mapping 1:1 to a Latin letter, with no
+      silent letters. Learn the shapes here, then test yourself
+      with the recognition drill.
+    </p>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-16">
+    <h2 class="mb-2 text-2xl font-bold">Practise recognition</h2>
+    <p class="mb-6 text-fg-muted">
+      A Cyrillic letter appears. Pick its Latin sound, or use keys 1-4.
+    </p>
+    <AlphabetDrill client:only="svelte" />
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-24">
+    <h2 class="mb-6 text-2xl font-bold">All 30 letters</h2>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        alphabet.map((letter) => (
+          <a
+            href={`/alphabet/${letterSlug(letter.id)}`}
+            class="flex gap-4 rounded-xl border border-border bg-bg-elev p-4 hover:bg-primary-soft"
+          >
+            <div class="flex flex-col items-center justify-center">
+              <span lang="sr" class="text-3xl font-bold leading-none">
+                {letter.cyrillic}
+                {letter.cyrillicLower}
+              </span>
+              <span class="mt-1 text-sm text-fg-muted">{letter.latin}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium">
+                {letter.ipa}
+                <span class="text-fg-muted">
+                  · <span lang="sr">{letter.example}</span> ({letter.exampleEn})
+                </span>
+              </p>
+              {letter.mnemonic && (
+                <p class="mt-1 text-sm text-fg-muted"><SrAuto text={letter.mnemonic} /></p>
+              )}
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

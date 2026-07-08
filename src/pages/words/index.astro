@@ -1,0 +1,140 @@
+---
+import WordCard from "~/components/WordCard.astro";
+import { words } from "~/data/words";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { dictionaryGroups } from "~/lib/content/corpus";
+
+// Themed dictionary sections, grouped by the landing page each links to (so a
+// heading and its single `/words/topics/…` link always agree; see
+// dictionaryGroups). This is the hub that feeds those pages.
+const groups = dictionaryGroups();
+
+const description = `Browse ${words.length} essential Serbian words with Cyrillic and Latin spellings and English meanings.`;
+---
+
+<BaseLayout pageTitle="Serbian word list" description={description}>
+  <section class="mx-auto w-full max-w-5xl px-6 py-16">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Dictionary
+    </p>
+    <h1 class="text-4xl font-bold">Serbian words</h1>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+      {words.length} essential words, grouped by theme. Each links to a page
+      with its pronunciation, both scripts, and the Cyrillic letters that spell it.
+    </p>
+    <p class="mt-3 max-w-2xl text-fg-muted">
+      Words are listed in their dictionary form, but Serbian changes their
+      endings in a sentence. <a
+        href="/grammar"
+        class="font-medium text-primary underline underline-offset-4 hover:text-primary-strong"
+        >Serbian grammar at a glance</a
+      > explains noun cases and verb conjugation so the example sentences make sense.
+    </p>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-24">
+    <div
+      class="sticky top-0 z-10 -mx-6 mb-8 border-b border-border bg-bg px-6 py-4"
+    >
+      <label for="word-search" class="sr-only">Filter words</label>
+      <input
+        id="word-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Filter by Cyrillic, Latin, or English…"
+        class="w-full rounded-lg border border-border bg-bg-elev px-4 py-3 placeholder:text-fg-muted focus:border-primary focus:outline-none"
+      />
+    </div>
+
+    <p id="word-empty" role="status" hidden class="text-fg-muted">
+      No words match that filter.
+    </p>
+
+    {
+      groups.map((group) => (
+        <div class="mb-10" data-word-group>
+          {group.slug ? (
+            <h2 class="mb-4 text-2xl font-bold">
+              <a href={`/words/topics/${group.slug}`} class="hover:underline">
+                {group.label}
+              </a>
+            </h2>
+          ) : (
+            <h2 class="mb-4 text-2xl font-bold">{group.label}</h2>
+          )}
+          <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="list">
+            {group.words.map((word) => (
+              <li data-word>
+                <WordCard word={word} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </section>
+
+  <script>
+    // Progressive enhancement: the list is fully rendered at build time (so it stays
+    // crawlable and works without JS); this only toggles visibility of the
+    // nodes already on the page. Wired to `astro:page-load` so it also runs
+    // after client-side (ClientRouter) navigations, not just the hard load.
+    function setupWordFilter() {
+      const input = document.getElementById(
+        "word-search",
+      ) as HTMLInputElement | null;
+      if (!input) return;
+
+      // Case- and diacritic-insensitive, so typing "c"/"dj" matches "č"/"đ"
+      // in the Latin forms.
+      const fold = (value: string) =>
+        value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "dj");
+
+      const groups = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-word-group]"),
+      );
+      const items = groups.flatMap((group) =>
+        Array.from(group.querySelectorAll<HTMLElement>("[data-word]")).map(
+          (el) => ({ el, group, text: fold(el.textContent ?? "") }),
+        ),
+      );
+      const empty = document.getElementById("word-empty");
+
+      const apply = () => {
+        const query = fold(input.value.trim());
+        const matchedGroups = new Set<HTMLElement>();
+        let total = 0;
+        for (const { el, group, text } of items) {
+          const match = query === "" || text.includes(query);
+          // These cards carry `flex`/`grid`, so we toggle inline `display`
+          // rather than the `hidden` attribute: setting it back to "" lets the
+          // card fall back to its layout display when shown. (This is self-
+          // contained and doesn't lean on Tailwind v4 preflight's
+          // `[hidden] { display: none !important }`, unlike #word-empty below,
+          // which is a plain block and uses the semantic `hidden` attribute.)
+          el.style.display = match ? "" : "none";
+          if (match) {
+            matchedGroups.add(group);
+            total += 1;
+          }
+        }
+        for (const group of groups) {
+          group.style.display = matchedGroups.has(group) ? "" : "none";
+        }
+        // Toggle the `hidden` attribute itself (not inline `display`): it's the
+        // static-HTML/no-JS default and is what Tailwind preflight makes authoritative
+        // via `[hidden] !important`, so a `style.display = ""` could never beat
+        // it back into view.
+        if (empty) empty.hidden = total !== 0;
+      };
+
+      input.addEventListener("input", apply);
+    }
+
+    document.addEventListener("astro:page-load", setupWordFilter);
+  </script>
+</BaseLayout>

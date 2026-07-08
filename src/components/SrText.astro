@@ -1,0 +1,35 @@
+---
+/**
+ * Renders an English string whose inline Serbian segments are marked with
+ * backticks, wrapping each Serbian run in `lang="sr"` so it gets the correct
+ * Serbian Cyrillic glyph forms (WCAG 3.1.2, "Language of Parts"). Pass `chip`
+ * to style each marked run as an `<SrTerm>` chip instead of a plain span.
+ *
+ * This is the tagged-interpolation pattern i18n libraries use for markup inside
+ * an authored string (react-intl rich text, i18next `<Trans>`): the copy stays
+ * a single string and the element is substituted at render. For a single inline
+ * term written directly in markup, use `<SrTerm>` (chip) or a plain
+ * `<span lang="sr">` instead.
+ */
+import SrTerm from "~/components/SrTerm.astro";
+
+interface Props {
+  text: string;
+  /** Render each backtick-marked run as a styled `<SrTerm>` chip. */
+  chip?: boolean;
+}
+const { text, chip = false } = Astro.props;
+const segments = text.split("`");
+---
+
+{
+  segments.map((seg, i) =>
+    i % 2 === 0 ? (
+      seg
+    ) : chip ? (
+      <SrTerm>{seg}</SrTerm>
+    ) : (
+      <span lang="sr">{seg}</span>
+    ),
+  )
+}

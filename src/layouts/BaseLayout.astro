@@ -1,0 +1,155 @@
+---
+import "~/styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import { pwaInfo } from "virtual:pwa-info";
+import Footer from "~/components/Footer.astro";
+import Header from "~/components/Header.astro";
+import { INSTALL_CHANGE_EVENT, INSTALL_GLOBAL } from "~/lib/pwa/install";
+import { safeJsonLd } from "~/lib/seo/json-ld";
+import { isNoindex } from "~/lib/seo/noindex";
+import { THEME_META_COLORS, THEME_STORAGE_KEY } from "~/lib/theme";
+
+type Props = {
+  pageTitle?: string;
+  description?: string;
+  noindex?: boolean;
+  // Structured data for this page, serialized here so the `<`-escape is the only
+  // path: a page hands the object, never the script tag, and can't ship
+  // unescaped JSON-LD by forgetting the guard. Single-sourced like noindex below.
+  jsonLd?: unknown;
+};
+
+const {
+  pageTitle,
+  description = "Learn the Serbian Cyrillic alphabet and high-frequency vocabulary with spaced repetition. Five minutes a day, fully offline.",
+  // Defaults from the shared noindex route list (same source the sitemap filter
+  // uses, so the two can't drift); a page can still force it, e.g. the 404
+  // fallback, which isn't a real route.
+  noindex = isNoindex(Astro.url.pathname),
+  jsonLd,
+} = Astro.props;
+
+const title = pageTitle
+  ? `${pageTitle} — Bukvar`
+  : "Bukvar — Learn Serbian Cyrillic & vocabulary";
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL("/og.png", Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content={THEME_META_COLORS.light} />
+    {/* Resolve the color theme before first paint: stored override if any,
+        else the device preference. Inline (parser-blocking) on purpose: a
+        module script would run after paint and flash the wrong theme. The
+        constants come from lib/theme.ts via define:vars so the settings
+        control and this script can't drift apart. */}
+    <script
+      is:inline
+      define:vars={{ storageKey: THEME_STORAGE_KEY, metaColors: THEME_META_COLORS }}
+    >
+      const media = matchMedia("(prefers-color-scheme: dark)");
+      const apply = () => {
+        let stored = null;
+        try {
+          stored = localStorage.getItem(storageKey);
+        } catch {
+          // Storage can be unavailable (private mode); fall through to device.
+        }
+        const theme =
+          stored === "light" || stored === "dark"
+            ? stored
+            : media.matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.theme = theme;
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", metaColors[theme]);
+      };
+      apply();
+      // Follow live OS theme flips (a stored override makes this a no-op).
+      media.addEventListener("change", apply);
+      // The ClientRouter swap replaces <html>'s attributes and <head> with the
+      // next page's, wiping data-theme and the corrected meta. Re-apply after
+      // every soft navigation. (Astro's documented dark-mode pattern.)
+      document.addEventListener("astro:after-swap", apply);
+    </script>
+    {/* Capture the Chromium install prompt the moment it's offered. It can fire
+        before any island hydrates, so we stash it on `window` (and note an
+        `appinstalled`) for lib/pwa/install to read back. Capture early, consume
+        late. Wrapped so a re-run can't double-bind; window state survives the
+        ClientRouter soft-nav swaps, so binding once is enough. */}
+    <script
+      is:inline
+      define:vars={{ key: INSTALL_GLOBAL, changeEvent: INSTALL_CHANGE_EVENT }}
+    >
+      (() => {
+        if (window[key]) return;
+        const stash = (window[key] = { event: null, installed: false });
+        const notify = () => window.dispatchEvent(new Event(changeEvent));
+        if (
+          matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true
+        ) {
+          stash.installed = true;
+        }
+        window.addEventListener("beforeinstallprompt", (e) => {
+          e.preventDefault();
+          stash.event = e;
+          notify();
+        });
+        window.addEventListener("appinstalled", () => {
+          stash.event = null;
+          stash.installed = true;
+          notify();
+        });
+      })();
+    </script>
+    {noindex && <meta name="robots" content="noindex" />}
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {/* @vite-pwa/astro 1.x doesn't auto-inject under Astro 6, so the manifest
+        link and the service-worker registration are wired in by hand below. */}
+    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bukvar" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {jsonLd && <script type="application/ld+json" is:inline set:html={safeJsonLd(jsonLd)} />}
+
+    <slot name="head" />
+
+    <script>
+      import { registerSW } from "virtual:pwa-register";
+
+      registerSW({ immediate: true });
+    </script>
+
+    <ClientRouter />
+  </head>
+  <body class="flex min-h-dvh flex-col bg-bg text-fg">
+    <Header />
+    <main class="flex w-full flex-1 flex-col">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

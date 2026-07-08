@@ -1,0 +1,26 @@
+---
+import Icon from "~/components/Icon.svelte";
+
+const repo = "https://github.com/djkorac/bukvar";
+---
+
+<footer class="border-t border-border bg-bg-elev">
+  <div
+    class="mx-auto flex w-full max-w-5xl flex-col gap-2 px-6 py-8 text-sm text-fg-muted sm:flex-row sm:items-center sm:justify-between"
+  >
+    <p>
+      <span class="font-semibold text-fg">Bukvar</span>, an open-source way to
+      learn Serbian Cyrillic.
+    </p>
+    <p class="flex items-center gap-4">
+      <a href="/about" class="underline-offset-4 hover:underline">About</a>
+      <a
+        href={repo}
+        class="inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
+      >
+        <Icon name="github" size={15} /> Source
+      </a>
+      <span>Works offline · No account</span>
+    </p>
+  </div>
+</footer>

@@ -1,0 +1,31 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+
+{/* Forces noindex via the prop, not the shared route list (lib/seo/noindex):
+    404 is a virtual fallback, not a real route, and the sitemap already omits it. */}
+<BaseLayout pageTitle="Page not found" noindex={true}>
+  <section
+    class="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center"
+  >
+    <p class="text-7xl font-bold text-primary">404</p>
+    <h1 lang="sr" class="text-2xl font-semibold">Нема га овде</h1>
+    <p class="text-fg-muted">
+      That page doesn't exist. Maybe it wandered off to learn its letters.
+    </p>
+    <div class="mt-2 flex flex-wrap justify-center gap-3">
+      <a
+        href="/"
+        class="btn-primary px-5 py-2"
+      >
+        Home
+      </a>
+      <a
+        href="/app"
+        class="btn-secondary px-5 py-2"
+      >
+        Practice
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,24 @@
+---
+/**
+ * Renders a derived data string (a mnemonic, a reviewer reading-aid line)
+ * whose inline Serbian Cyrillic runs are auto-detected and wrapped in
+ * `lang="sr"`, so they get the correct Serbian glyph forms without the author
+ * marking anything. See `segmentCyrillic`.
+ *
+ * For author-written *prose* with inline terms, use `<SrText>` (backtick-marked)
+ * or `<SrTerm>` (styled chip) instead. Those can also tag Serbian Latin.
+ */
+import { segmentCyrillic } from "~/lib/content/segment-cyrillic";
+
+interface Props {
+  /** Optional so a caller can pass an optional field (e.g. a mnemonic) straight
+   * through; an absent or empty string renders nothing. */
+  text?: string;
+}
+const { text = "" } = Astro.props;
+---
+{
+  segmentCyrillic(text).map((seg) =>
+    seg.sr ? <span lang="sr">{seg.text}</span> : seg.text,
+  )
+}

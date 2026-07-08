@@ -1,0 +1,22 @@
+---
+import History from "~/components/History.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+
+<BaseLayout pageTitle="History">
+  <section class="mx-auto w-full max-w-2xl px-6 py-16">
+    <h1 class="text-3xl font-bold">History</h1>
+    <p class="mt-2 text-fg-muted">
+      Every session you've studied on this device: your streak, time spent, and
+      how your recall is holding up. All derived from your local review log; it
+      never leaves the device.
+    </p>
+    <div class="mt-8">
+      <!--
+        client:only="svelte": reads the review log from IndexedDB, which only
+        exists in the browser, so it can't be rendered at build time.
+      -->
+      <History client:only="svelte" />
+    </div>
+  </section>
+</BaseLayout>

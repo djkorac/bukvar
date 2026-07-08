@@ -1,0 +1,53 @@
+---
+import BackupControls from "~/components/BackupControls.svelte";
+import InstallControl from "~/components/InstallControl.svelte";
+import PreferencesControls from "~/components/PreferencesControls.svelte";
+import StorageStatus from "~/components/StorageStatus.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+
+<BaseLayout pageTitle="Settings">
+  <section class="mx-auto w-full max-w-2xl px-6 py-16">
+    <h1 class="text-3xl font-bold">Settings</h1>
+
+    <h2 class="mt-8 text-xl font-semibold">Preferences</h2>
+    <p class="mt-2 text-fg-muted">
+      Tune pacing and your prompt script. Changes save automatically and apply
+      on your next session.
+    </p>
+    <div class="card mt-4">
+      <PreferencesControls client:only="svelte" />
+    </div>
+
+    <h2 class="mt-10 text-xl font-semibold">Placement</h2>
+    <p class="mt-2 text-fg-muted">
+      Already know some Serbian? Retake the quick placement check to skip ahead
+      past letters and words you can already read and recognise. It only
+      marks items as known. It never resets progress you've made.
+    </p>
+    <div class="mt-4">
+      <a
+        href="/placement"
+        class="btn-accent inline-flex px-5 py-2"
+      >
+        Retake placement test
+      </a>
+    </div>
+
+    <h2 class="mt-10 text-xl font-semibold">Your data</h2>
+    <p class="mt-2 text-fg-muted">
+      Bukvar keeps everything on this device. No account, no server. Export a
+      backup to keep your progress safe or move it to another device.
+    </p>
+    <StorageStatus client:only="svelte" />
+    <InstallControl client:only="svelte" />
+    <div class="card mt-4">
+      <BackupControls client:only="svelte" />
+    </div>
+    <p class="mt-4 text-sm text-fg-muted">
+      Importing a backup replaces the progress currently on this device. The
+      backup is a plain JSON file containing your review schedule, history, and
+      preferences.
+    </p>
+  </section>
+</BaseLayout>

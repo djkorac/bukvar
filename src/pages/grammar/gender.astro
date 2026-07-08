@@ -1,0 +1,281 @@
+---
+import Icon from "~/components/Icon.svelte";
+import SrTerm from "~/components/SrTerm.astro";
+import SrText from "~/components/SrText.astro";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+const description =
+  "Serbian noun gender and the seven cases: how to tell if a noun is masculine, feminine, or neuter, with a full table of singular case endings.";
+
+// Every Serbian word here is a real Bukvar headword, declined by hand. No
+// paradigm is pasted from a reference; the endings are the regular singular
+// pattern and the prose is ours.
+
+type GenderRule = { ending: string; gender: string; examples: string[] };
+const genderRules: GenderRule[] = [
+  {
+    ending: "a consonant",
+    gender: "Masculine",
+    examples: ["прозор", "град", "брат", "хлеб"],
+  },
+  {
+    ending: "`-а`",
+    gender: "Feminine",
+    examples: ["жена", "мајка", "кафа", "вода"],
+  },
+  {
+    ending: "`-о` or `-е`",
+    gender: "Neuter",
+    examples: ["место", "млеко", "вино", "вече"],
+  },
+];
+
+// `use` strings mark inline Serbian prepositions with backticks; the cell
+// renders them with <SrText chip />, which wraps each backtick run in an
+// <SrTerm> chip.
+type CaseRow = {
+  name: string;
+  sr: string;
+  answers: string;
+  use: string;
+  exSr: string;
+  exEn: string;
+};
+const cases: CaseRow[] = [
+  {
+    name: "Nominative",
+    sr: "номинатив",
+    answers: "who? what?",
+    use: "The dictionary form, used for the subject of the sentence.",
+    exSr: "Кафа је топла.",
+    exEn: "The coffee is hot.",
+  },
+  {
+    name: "Genitive",
+    sr: "генитив",
+    answers: "of whom? of what?",
+    use: "Possession and the sense of 'of'; after `без`, `од`, `до`, `из`, `код`, and with quantities.",
+    exSr: "шоља кафе, без воде",
+    exEn: "a cup of coffee, without water",
+  },
+  {
+    name: "Dative",
+    sr: "датив",
+    answers: "to whom?",
+    use: "The indirect object: who you give or say something to. Follows `према`.",
+    exSr: "Дао сам књигу сестри.",
+    exEn: "I gave the book to my sister.",
+  },
+  {
+    name: "Accusative",
+    sr: "акузатив",
+    answers: "whom? what?",
+    use: "The direct object; after `у/на` when there is motion (into, onto).",
+    exSr: "Волим кафу. Идем у град.",
+    exEn: "I like coffee. I'm going into town.",
+  },
+  {
+    name: "Vocative",
+    sr: "вокатив",
+    answers: "hey!",
+    use: "Calling or addressing someone directly.",
+    exSr: "Хвала, мајко!",
+    exEn: "Thank you, mum!",
+  },
+  {
+    name: "Instrumental",
+    sr: "инструментал",
+    answers: "with whom? with what?",
+    use: "Company ('with') or the means or tool; after `с(а)`.",
+    exSr: "с братом, с водом",
+    exEn: "with my brother, with water",
+  },
+  {
+    name: "Locative",
+    sr: "локатив",
+    answers: "about whom? where?",
+    use: "Location (in, on, at) with no motion; only ever after a preposition.",
+    exSr: "у граду, на месту",
+    exEn: "in the city, in place",
+  },
+];
+
+type DeclRow = { name: string; f: string; m: string; n: string };
+const declension: DeclRow[] = [
+  { name: "Nominative", f: "жена", m: "прозор", n: "место" },
+  { name: "Genitive", f: "жене", m: "прозора", n: "места" },
+  { name: "Dative", f: "жени", m: "прозору", n: "месту" },
+  { name: "Accusative", f: "жену", m: "прозор", n: "место" },
+  { name: "Vocative", f: "жено", m: "прозоре", n: "место" },
+  { name: "Instrumental", f: "женом", m: "прозором", n: "местом" },
+  { name: "Locative", f: "жени", m: "прозору", n: "месту" },
+];
+---
+
+<BaseLayout
+  pageTitle="Serbian noun gender & the seven cases"
+  description={description}
+>
+  <article class="mx-auto w-full max-w-3xl px-6 py-16">
+    <nav class="mb-6 text-sm text-fg-muted">
+      <a href="/grammar" class="hover:underline">Grammar</a>
+      <span> / </span>
+      <span>Gender & cases</span>
+    </nav>
+
+    <header class="border-b border-border pb-6">
+      <h1 class="text-4xl font-bold">Noun gender & the seven cases</h1>
+      <p class="mt-4 text-lg text-fg-muted">
+        Serbian nouns have a <strong class="text-fg">gender</strong>, and they
+        change their ending depending on their role in the sentence. That role is
+        called <strong class="text-fg">case</strong>. It's why a word from your
+        deck can turn up with a different ending in an example sentence.
+      </p>
+    </header>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold">How to tell a noun's gender</h2>
+      <p class="mt-3 text-fg-muted">
+        You can usually read a noun's gender straight off its ending.
+      </p>
+      <table class="mt-4 w-full border-collapse text-left">
+        <thead>
+          <tr class="border-b border-border text-sm text-fg-muted">
+            <th class="py-2 pr-4 font-medium">Ends in…</th>
+            <th class="py-2 pr-4 font-medium">Usually</th>
+            <th class="py-2 font-medium">Examples</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            genderRules.map((r) => (
+              <tr class="border-b border-border">
+                <td class="py-3 pr-4 font-medium">
+                  <SrText text={r.ending} />
+                </td>
+                <td class="py-3 pr-4">{r.gender}</td>
+                <td lang="sr" class="py-3">
+                  {r.examples.join(", ")}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+      <p class="mt-4 text-sm text-fg-muted">
+        A few exceptions are worth knowing. Some consonant-ending nouns are
+        feminine (<SrTerm>ноћ</SrTerm> "night", <SrTerm>ствар</SrTerm> "thing",
+        <SrTerm>со</SrTerm> "salt"), and a handful of <SrTerm>-а</SrTerm> nouns that
+        name men are masculine (<SrTerm>деда</SrTerm> "grandpa").
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">What the seven cases do</h2>
+      <p class="mt-3 text-fg-muted">
+        Each case marks a different role. You don't need to produce them yet,
+        only recognise which one you're looking at.
+      </p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-[40rem] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-border text-sm text-fg-muted">
+              <th class="py-2 pr-4 font-medium">Case</th>
+              <th class="py-2 pr-4 font-medium">Answers</th>
+              <th class="py-2 pr-4 font-medium">What it marks</th>
+              <th class="py-2 font-medium">Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              cases.map((c) => (
+                <tr class="border-b border-border align-top">
+                  <td class="py-3 pr-4">
+                    <span class="font-medium">{c.name}</span>
+                    <span lang="sr" class="block text-xs text-fg-muted">
+                      {c.sr}
+                    </span>
+                  </td>
+                  <td class="py-3 pr-4 text-sm text-fg-muted">{c.answers}</td>
+                  <td class="py-3 pr-4 text-sm leading-relaxed">
+                    <SrText text={c.use} chip />
+                  </td>
+                  <td class="py-3">
+                    <span lang="sr" class="block font-medium">
+                      {c.exSr}
+                    </span>
+                    <span class="block text-sm text-fg-muted">{c.exEn}</span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">One noun in every case</h2>
+      <p class="mt-3 text-fg-muted">
+        This is the regular <strong class="text-fg">singular</strong> pattern: one
+        noun of each gender taken through all seven cases. <SrTerm>жена</SrTerm>
+        means "woman", <SrTerm>прозор</SrTerm> "window", and <SrTerm>место</SrTerm>
+        "place".
+      </p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-[34rem] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-border text-sm text-fg-muted">
+              <th class="py-2 pr-4 font-medium">Case</th>
+              <th class="py-2 pr-4 font-medium">Feminine</th>
+              <th class="py-2 pr-4 font-medium">Masculine</th>
+              <th class="py-2 font-medium">Neuter</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              declension.map((row) => (
+                <tr class="border-b border-border">
+                  <td class="py-3 pr-4 text-sm text-fg-muted">{row.name}</td>
+                  <td lang="sr" class="py-3 pr-4 font-medium">
+                    {row.f}
+                  </td>
+                  <td lang="sr" class="py-3 pr-4 font-medium">
+                    {row.m}
+                  </td>
+                  <td lang="sr" class="py-3 font-medium">
+                    {row.n}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div
+        class="mt-6 rounded-xl border border-border bg-bg-elev p-5 text-sm leading-relaxed text-fg-muted"
+      >
+        <p>
+          The table leaves a couple of things out. The plural has its own set of
+          seven endings. And for a masculine noun that names a person or animal,
+          the accusative copies the genitive rather than the nominative:
+          <SrTerm>Видим брата</SrTerm> "I see my brother" (not <SrTerm>брат</SrTerm>),
+          while an inanimate thing stays put, as in <SrTerm>Видим прозор</SrTerm>.
+          Common nouns also carry small twists, such as the consonant shift in
+          <SrTerm>мајка → мајци</SrTerm>, but the endings above are the regular
+          pattern.
+        </p>
+      </div>
+    </section>
+
+    <p class="mt-10">
+      <a
+        href="/grammar/verbs"
+        class="btn-primary inline-flex items-center gap-2 px-5 py-2"
+      >
+        Next: present tense & aspect <Icon name="arrow-right" />
+      </a>
+    </p>
+  </article>
+</BaseLayout>

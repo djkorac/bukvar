@@ -1,0 +1,27 @@
+---
+/**
+ * A single prev/next link in the alphabet letter pager. Shared by the top
+ * (breadcrumb row) and bottom navs on `/alphabet/[slug]` so the forward path is
+ * reachable above the fold without scrolling past the "Words using …" list.
+ */
+import Icon from "~/components/Icon.svelte";
+import { letterSlug } from "~/lib/content/corpus";
+import type { LetterEntry } from "~/lib/content/types";
+
+interface Props {
+  letter: LetterEntry;
+  dir: "prev" | "next";
+}
+const { letter, dir } = Astro.props;
+---
+
+<a
+  href={`/alphabet/${letterSlug(letter.id)}`}
+  rel={dir}
+  class="inline-flex items-center gap-1 hover:underline"
+>
+  {dir === "prev" && <Icon name="arrow-left" />}
+  <span class="sr-only">{dir === "prev" ? "Previous letter: " : "Next letter: "}</span>
+  <span lang="sr">{letter.cyrillic}{letter.cyrillicLower}</span>
+  {dir === "next" && <Icon name="arrow-right" />}
+</a>

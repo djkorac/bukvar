@@ -1,0 +1,26 @@
+---
+import TopicDrill from "~/components/TopicDrill.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+const description =
+  "Quick multiple-choice practice on any Serbian vocabulary topic. Extra repetitions that never touch your spaced-repetition schedule.";
+---
+
+<BaseLayout pageTitle="Practise Serbian vocabulary" description={description}>
+  <section class="mx-auto w-full max-w-5xl px-6 py-16">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Keep going
+    </p>
+    <h1 class="max-w-3xl text-4xl font-bold">Topic practice</h1>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+      Pick a topic and drill its words multiple-choice. Good for when you're
+      done with today's reviews, or cramming travel words before a trip.
+      Practice is extra repetition on top of your reviews; it never changes
+      what's due or when, so drill as much as you like.
+    </p>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-24">
+    <TopicDrill client:only="svelte" />
+  </section>
+</BaseLayout>

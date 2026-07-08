@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/* Two font families, split content/chrome: Inter for the English UI, Source
+ * Serif 4 for Serbian content (keyed off lang="sr" below). The serif also
+ * does real work: its italics carry the true Serbian forms of б г д п т
+ * under the OpenType `SRB` language system, which Inter lacks entirely. The
+ * `wght` variant pins the optical-size axis at the text cut; it is ~2.6x
+ * lighter than the opsz files and the sturdier cut suits the primer look. */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/source-serif-4";
+@import "@fontsource-variable/source-serif-4/wght-italic.css";
+
+@theme {
+  --font-body:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-serif: "Source Serif 4 Variable", Georgia, serif;
+
+  /* Palette: warm "primer" paper, ink text, scholarly blue, Serbian crimson. */
+  --color-bg: #faf6ef;
+  --color-bg-elev: #ffffff;
+  --color-fg: #1c1c28;
+  --color-fg-muted: #5b5b6b;
+  --color-primary: #2a4a8a;
+  --color-primary-strong: #16213a;
+  /* Faint blue wash for subtle hover backgrounds and progress-bar tracks. */
+  --color-primary-soft: #e8eef8;
+  --color-accent: #c0392b;
+  --color-success: #2a6e42;
+  /* Warm accent for the day-streak flame, kept distinct from the scholarly
+   * palette. The filled flame pairs this bright fill with the deeper shade as a
+   * contour (bright body, hot edge) so it doesn't read as a flat orange mass. */
+  --color-streak: #f97316;
+  --color-streak-deep: #b23410;
+  --color-border: #e7dfd2;
+  --color-on-primary: #ffffff;
+
+  /* Curriculum-phase accents for the level tag on review cards (see the PHASES
+   * model in data/levels.ts). Muted, scholarly tones, each legible on the paper
+   * and elevated-card backgrounds. */
+  --color-phase-azbuka: #b23a2e;
+  --color-phase-survival: #2a4a8a;
+  --color-phase-core: #2a6e42;
+  --color-phase-life: #9a6510;
+  --color-phase-ideas: #634a9e;
+  --color-phase-mastery: #15706e;
+}
+
+/* Dark theme: the same tokens with night values. The inline script in
+ * BaseLayout.astro resolves the theme (stored override, else
+ * prefers-color-scheme) and sets data-theme on <html> before first paint, so
+ * CSS only ever sees a resolved "light"/"dark". This is the one override
+ * block, and it beats the @theme defaults because Tailwind emits those inside
+ * @layer while this block is unlayered. Every component reads colors through
+ * the tokens (no raw palette utilities: a project rule), so no dark: variants
+ * exist anywhere.
+ *
+ * The values keep the primer character: warm near-black paper instead of
+ * neutral gray, ink flipped to warm off-white, and the scholarly blue /
+ * crimson / phase accents lightened to stay ≥4.5:1 on the dark grounds.
+ * Primary buttons invert (light-blue fill, navy ink) via --color-on-primary.
+ * The streak flame (--color-streak/-deep) already reads correctly on dark and
+ * keeps its light values. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #171310;
+  --color-bg-elev: #221d17;
+  --color-fg: #ece5d8;
+  --color-fg-muted: #a59b8c;
+  --color-primary: #8fb3ea;
+  --color-primary-strong: #b4cdf5;
+  --color-primary-soft: #242e45;
+  --color-accent: #e08070;
+  --color-success: #6fb588;
+  --color-border: #3a322a;
+  --color-on-primary: #131a2e;
+
+  --color-phase-azbuka: #e58273;
+  --color-phase-survival: #8fb3ea;
+  --color-phase-core: #6fb588;
+  --color-phase-life: #d3a14f;
+  --color-phase-ideas: #b3a0e6;
+  --color-phase-mastery: #62b8b4;
+}
+
+html {
+  /* Resolved per theme (the dark block above flips it) so form controls and
+   * scrollbars follow; the data-theme attribute is what actually switches the
+   * palette. */
+  color-scheme: light;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Always reserve the scrollbar gutter so content doesn't shift left when a
+   * page is tall enough to scroll (or navigating between short/tall pages). */
+  scrollbar-gutter: stable;
+}
+
+/* Primary CTA, used by both .astro pages and .svelte islands (which cannot
+ * share a component). Size is set per call site with padding utilities. Those
+ * win because the utilities layer comes after components. Hover deepens the
+ * fill via primary-strong rather than fading opacity: opacity dims the label
+ * along with the fill and blends the button into the page behind it. @apply
+ * (rather than hand-written declarations) keeps Tailwind's exact semantics,
+ * notably the hover-capable-device gating on hover: variants. */
+@layer components {
+  .btn-primary {
+    @apply rounded-lg border border-primary bg-primary font-medium text-on-primary;
+    @apply transition-colors hover:border-primary-strong hover:bg-primary-strong;
+  }
+
+  /* Secondary CTA: the outline sibling of .btn-primary, paired with it at most
+   * call sites. transition-colors so the primary-soft hover fades in step with
+   * the primary's deepening fill. */
+  .btn-secondary {
+    @apply rounded-lg border border-border font-medium;
+    @apply transition-colors hover:bg-primary-soft;
+  }
+
+  /* Mid-emphasis CTA between .btn-primary (filled) and .btn-secondary (neutral
+   * outline): a primary outline, no fill, filling in on hover. No solid fill is
+   * what keeps it quieter than primary. Paired beside a .btn-secondary on the
+   * done screen, used standalone in settings and the storage prompt. */
+  .btn-accent {
+    @apply rounded-lg border border-primary font-medium text-primary;
+    @apply transition-colors hover:bg-primary-soft;
+  }
+
+  /* Elevated content card. Shared across the .astro/.svelte boundary (which
+   * can't share a component) so a runtime-conditional island can own its own
+   * frame and render the whole card (or nothing) instead of a static page
+   * wrapper leaving an empty box when the island has nothing to show. */
+  .card {
+    @apply rounded-2xl border border-border bg-bg-elev p-6;
+  }
+
+  /* Dismissible-nudge callout (install/backup reminders at the top of /app). A
+   * .card variant with the primary color on the border, not a fill: a primary-soft fill
+   * would match the .btn-secondary hover inside it, killing that hover. */
+  .nudge {
+    @apply flex flex-col gap-3 rounded-2xl border border-primary bg-bg-elev p-6;
+  }
+}
+
+/* Serbian content renders in the serif. Every Serbian Cyrillic element
+ * already carries lang="sr", and browsers
+ * also use that attribute to switch on the font's Serbian `locl` forms.
+ * Latin transliterations stay in Inter on purpose: they read as UI, not
+ * content. */
+[lang="sr"] {
+  font-family: var(--font-serif);
+}
+
+/* True Serbian italics (letter specimens, drill and review prompts). The
+ * Serbian italic forms are `locl` glyph variants without codepoints of their
+ * own, so this only works on a lang="sr" element. font-synthesis: none stops
+ * the browser from faking a slant if the font ever fails to load. */
+.sr-italic {
+  font-style: italic;
+  font-synthesis: none;
+}
+
+/* Astro view-transition tuning. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+}
+
+/* Reduced-motion baseline reset: Tailwind's Preflight ships none, so honor the
+ * preference for every ordinary element, notably the .btn-* hover crossfades
+ * (transition-colors). Kept unlayered so it beats Tailwind's layered utilities by
+ * cascade-layer precedence, which is why it needs no !important (do not wrap it in
+ * an @layer). Near-zero durations rather than 0 keep transitionend/animationend
+ * firing; iteration-count 1 stops any infinite loop. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}
+
+/* Honor a reduced-motion preference for navigations: Astro's ClientRouter does
+ * not gate its transitions, so disable every view-transition animation (not just
+ * today's root cross-fade) to stay correct if named transitions are added later.
+ * The universal-selector reduced-motion reset can't reach these pseudo-elements,
+ * so they need their own rule. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    /* biome-ignore lint/complexity/noImportantStyles: required so the reduced-motion
+     * reset beats the UA defaults and the higher-specificity per-name duration rules
+     * (e.g. ::view-transition-new(root)) above. */
+    animation: none !important;
+  }
+}

@@ -1,0 +1,92 @@
+---
+import SrText from "~/components/SrText.astro";
+import { alphabet } from "~/data/alphabet";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { letterSlug } from "~/lib/content/corpus";
+
+const method = [
+  {
+    title: "Spaced repetition",
+    body: "The FSRS algorithm spaces your reviews, bringing each letter and word back just before it slips.",
+  },
+  {
+    title: "Practical first",
+    body: "Useful, high-frequency words come first, so early sessions feel like real Serbian rather than random lists.",
+  },
+  {
+    title: "Both scripts",
+    body: "Learn to read Cyrillic from day one, with Latin alongside. Flip between `Ћирилица` and Latinica anytime.",
+  },
+  {
+    title: "Five minutes a day",
+    body: "Short daily sessions build the habit. It runs offline and keeps everything on your device.",
+  },
+];
+---
+
+<BaseLayout>
+  <section class="mx-auto w-full max-w-5xl px-6 py-20 text-center">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Open-source Serbian
+    </p>
+    <h1 class="mx-auto max-w-3xl text-balance text-4xl font-bold sm:text-5xl">
+      Learn the Serbian Cyrillic alphabet and your first words.
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg text-fg-muted">
+      Bukvar teaches Cyrillic (<span lang="sr">азбука</span>) and high-frequency
+      vocabulary with spaced repetition. Five minutes a day, free and offline.
+    </p>
+    <div class="mt-8 flex items-center justify-center gap-4">
+      <a
+        href="/app"
+        class="btn-primary px-6 py-3"
+      >
+        Start practising
+      </a>
+      <a
+        href="/alphabet"
+        class="btn-secondary px-6 py-3"
+      >
+        Learn the alphabet
+      </a>
+    </div>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-16">
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        method.map((m) => (
+          <div class="rounded-xl border border-border bg-bg-elev p-6">
+            <h2 class="mb-2 text-lg font-semibold">{m.title}</h2>
+            <p class="text-sm leading-relaxed text-fg-muted">
+              <SrText text={m.body} />
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="azbuka" class="mx-auto w-full max-w-5xl scroll-mt-20 px-6 pb-24">
+    <h2 class="mb-6 text-2xl font-bold">The azbuka: 30 letters</h2>
+    <div
+      class="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-10"
+    >
+      {
+        alphabet.map((letter) => (
+          <a
+            href={`/alphabet/${letterSlug(letter.id)}`}
+            class="flex flex-col items-center rounded-lg border border-border bg-bg-elev py-3 hover:bg-primary-soft"
+            title={`${letter.example} (${letter.exampleEn})`}
+          >
+            <span lang="sr" class="text-2xl font-bold">
+              {letter.cyrillic}
+              {letter.cyrillicLower}
+            </span>
+            <span class="text-xs text-fg-muted">{letter.latin}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

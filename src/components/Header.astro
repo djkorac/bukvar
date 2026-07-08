@@ -1,0 +1,108 @@
+---
+import Icon from "~/components/Icon.svelte";
+import { isActive } from "~/lib/nav-active";
+
+const here = Astro.url.pathname;
+const links = [
+  { label: "Practice", href: "/app" },
+  { label: "Levels", href: "/levels" },
+  { label: "History", href: "/history" },
+];
+
+// The browse-the-material destinations, grouped behind one trigger so the bar
+// stays a single row on phones. "Learn" rather than "Corpus": the latter is the
+// term we use internally for the typed data, not a label a learner would scan
+// for the alphabet under.
+const learn = [
+  { label: "Alphabet", href: "/alphabet" },
+  { label: "Numbers", href: "/numbers" },
+  { label: "Words", href: "/words" },
+  { label: "Grammar", href: "/grammar" },
+];
+const learnActive = learn.some((link) => isActive(here, link.href));
+---
+
+<header class="border-b border-border bg-bg-elev">
+  <nav
+    class="mx-auto flex w-full max-w-5xl flex-col items-center gap-3 px-4 py-4 sm:flex-row sm:justify-between sm:gap-0 sm:px-6"
+  >
+    <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
+      <img src="/favicon.svg" alt="" width="28" height="28" class="rounded-md" />
+      <span class="text-lg">Bukvar</span>
+    </a>
+    <ul
+      class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm sm:flex-nowrap sm:gap-6"
+    >
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              aria-current={isActive(here, link.href) ? "page" : undefined}
+              class:list={[
+                "underline-offset-4 hover:underline",
+                isActive(here, link.href) && "font-semibold text-primary",
+              ]}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+      <li class="relative">
+        {/* Zero-JS disclosure: <details> toggles on tap and keyboard with no
+            island, and each ClientRouter navigation swaps in a freshly-rendered
+            (closed) header, since it isn't transition:persist'd. */}
+        <details class="group">
+          <summary
+            class:list={[
+              "flex cursor-pointer select-none list-none items-center gap-1 underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden",
+              learnActive && "font-semibold text-primary",
+            ]}
+          >
+            Learn
+            <Icon
+              name="chevron-down"
+              size={16}
+              class="transition-transform duration-200 group-open:rotate-180"
+            />
+          </summary>
+          <ul
+            class="absolute right-0 top-full z-50 mt-2 min-w-44 rounded-lg border border-border bg-bg-elev p-1 text-left shadow-lg"
+          >
+            {learn.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  aria-current={isActive(here, link.href) ? "page" : undefined}
+                  class:list={[
+                    "block rounded-md px-3 py-2 hover:bg-primary-soft",
+                    isActive(here, link.href)
+                      ? "font-semibold text-primary"
+                      : "text-fg",
+                  ]}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      </li>
+      <li>
+        <a
+          href="/settings"
+          aria-label="Settings"
+          title="Settings"
+          aria-current={isActive(here, "/settings") ? "page" : undefined}
+          class:list={[
+            "block transition-colors hover:text-fg",
+            isActive(here, "/settings") ? "text-primary" : "text-fg-muted",
+          ]}
+        >
+          <Icon name="settings" size={20} />
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>

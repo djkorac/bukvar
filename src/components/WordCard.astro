@@ -1,0 +1,43 @@
+---
+/**
+ * A single word in the bilingual dictionary listings: the linked card showing
+ * the `lang="sr"` Cyrillic headword · its Latin form, with the English gloss.
+ * Shared by the words hub (`/words`) and the per-topic pages
+ * (`/words/topics/[topic]`) so the correctness-bearing `lang="sr"` markup (it
+ * drives Serbian glyph forms) lives in one place across the most-crawled corpus
+ * pages.
+ *
+ * The card is the `<a>`; each page supplies its own surrounding `<li>` wrapper
+ * (and, on the hub, the `data-word` filter hook lives on that `<li>`).
+ */
+import { wordSlug } from "~/lib/content/corpus";
+import type { WordEntry } from "~/lib/content/types";
+
+interface Props {
+  word: WordEntry;
+  /** Render the first example sentence under the headword (topic pages). */
+  showExample?: boolean;
+}
+
+const { word, showExample = false } = Astro.props;
+---
+
+<a
+  href={`/words/${wordSlug(word.id)}`}
+  class="flex h-full flex-col gap-1 rounded-lg border border-border bg-bg-elev px-4 py-3 hover:bg-primary-soft"
+>
+  <span class="flex items-baseline justify-between gap-3">
+    <span>
+      <span lang="sr" class="font-semibold">{word.cyrillic}</span>
+      <span class="text-sm text-fg-muted"> · {word.latin}</span>
+    </span>
+    <span class="text-sm text-fg-muted">{word.english}</span>
+  </span>
+  {
+    showExample && word.examples?.[0] && (
+      <span lang="sr" class="text-sm text-fg-muted">
+        {word.examples[0].cyrillic}
+      </span>
+    )
+  }
+</a>

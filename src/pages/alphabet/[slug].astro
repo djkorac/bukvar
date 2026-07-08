@@ -1,0 +1,157 @@
+---
+import LetterPagerLink from "~/components/LetterPagerLink.astro";
+import SrAuto from "~/components/SrAuto.astro";
+import SrText from "~/components/SrText.astro";
+import { alphabet } from "~/data/alphabet";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { letterSlug, wordSlug, wordsWithLetter } from "~/lib/content/corpus";
+import { toLatin } from "~/lib/content/transliterate";
+import type { LetterEntry } from "~/lib/content/types";
+
+export function getStaticPaths() {
+  return alphabet.map((letter, i) => ({
+    params: { slug: letterSlug(letter.id) },
+    props: {
+      letter,
+      prev: i > 0 ? alphabet[i - 1] : null,
+      next: i < alphabet.length - 1 ? alphabet[i + 1] : null,
+    },
+  }));
+}
+
+type Props = {
+  letter: LetterEntry;
+  prev: LetterEntry | null;
+  next: LetterEntry | null;
+};
+const { letter, prev, next } = Astro.props;
+// Cap the chip list: wordsWithLetter is uncapped and returns rank (curriculum)
+// order, so for common vowels it would emit hundreds of chips (а ≈ 572), a wall
+// that buries the rest of the page and bloats the HTML on the most-crawled pages.
+// The slice keeps the highest-utility examples; the long tail adds no value here.
+const LETTER_WORD_LIMIT = 24;
+const allWords = wordsWithLetter(letter);
+const words = allWords.slice(0, LETTER_WORD_LIMIT);
+const moreCount = allWords.length - words.length;
+
+const description = `The Serbian Cyrillic letter ${letter.cyrillic}${letter.cyrillicLower} (${letter.latin}), ${letter.ipa}: how to read and pronounce it, with a mnemonic and example words.`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  name: `${letter.cyrillic}${letter.cyrillicLower}`,
+  alternateName: letter.latin,
+  description: `Serbian Cyrillic letter, pronounced ${letter.ipa}`,
+  inLanguage: "sr",
+  inDefinedTermSet: new URL("/alphabet/", Astro.site).toString(),
+};
+---
+
+<BaseLayout
+  pageTitle={`${letter.cyrillic}${letter.cyrillicLower} — Serbian Cyrillic letter`}
+  description={description}
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto w-full max-w-2xl px-6 py-16">
+    <nav class="mb-6 flex items-center justify-between gap-4 text-sm text-fg-muted">
+      <div>
+        <a href="/alphabet" class="hover:underline">Alphabet</a>
+        <span> / </span>
+        <span lang="sr">{letter.cyrillic}{letter.cyrillicLower}</span>
+      </div>
+      <div class="flex items-center gap-4">
+        {prev && <LetterPagerLink letter={prev} dir="prev" />}
+        {next && <LetterPagerLink letter={next} dir="next" />}
+      </div>
+    </nav>
+
+    <header class="flex items-end gap-6 border-b border-border pb-6">
+      <p lang="sr" class="text-7xl font-bold leading-none">
+        {letter.cyrillic}{letter.cyrillicLower}
+      </p>
+      <div>
+        <p class="text-2xl font-semibold text-primary">{letter.latin}</p>
+        <p class="text-fg-muted">{letter.ipa}</p>
+      </div>
+    </header>
+
+    {
+      letter.mnemonic && (
+        <section class="mt-6">
+          <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            How to remember it
+          </h2>
+          <p class="mt-2 text-lg"><SrAuto text={letter.mnemonic} /></p>
+        </section>
+      )
+    }
+
+    <section class="mt-6">
+      <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+        In italics
+      </h2>
+      <div class="mt-2 flex items-baseline gap-8">
+        <div>
+          <p lang="sr" class="text-4xl">{letter.cyrillic}{letter.cyrillicLower}</p>
+          <p class="mt-1 text-xs text-fg-muted">upright</p>
+        </div>
+        <div>
+          <p lang="sr" class="sr-italic text-4xl">
+            {letter.cyrillic}{letter.cyrillicLower}
+          </p>
+          <p class="mt-1 text-xs text-fg-muted">italic</p>
+        </div>
+      </div>
+      {
+        letter.italicNote && (
+          <p class="mt-3 text-sm text-fg-muted">
+            <SrText text={letter.italicNote} />
+          </p>
+        )
+      }
+    </section>
+
+    <section class="mt-6">
+      <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+        Example
+      </h2>
+      <p class="mt-2">
+        <span lang="sr" class="text-lg font-medium">{letter.example}</span>
+        <span class="text-fg-muted"> · {toLatin(letter.example)} — {letter.exampleEn}</span>
+      </p>
+    </section>
+
+    {
+      words.length > 0 && (
+        <section class="mt-6">
+          <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            Words using <span lang="sr">{letter.cyrillic}{letter.cyrillicLower}</span>
+          </h2>
+          <div class="mt-2 flex flex-wrap gap-2">
+            {words.map((word) => (
+              <a
+                href={`/words/${wordSlug(word.id)}`}
+                class="rounded-lg border border-border bg-bg-elev px-3 py-2 text-sm hover:bg-primary-soft"
+              >
+                <span lang="sr" class="font-medium">
+                  {word.cyrillic}
+                </span>
+                <span class="text-fg-muted"> — {word.english}</span>
+              </a>
+            ))}
+          </div>
+          {moreCount > 0 && (
+            <p class="mt-3 text-sm text-fg-muted">
+              +{moreCount} more {moreCount === 1 ? "word uses" : "words use"} <span lang="sr">{letter.cyrillic}{letter.cyrillicLower}</span>
+            </p>
+          )}
+        </section>
+      )
+    }
+
+    <nav class="mt-10 flex justify-between border-t border-border pt-6 text-sm">
+      {prev ? <LetterPagerLink letter={prev} dir="prev" /> : <span />}
+      {next ? <LetterPagerLink letter={next} dir="next" /> : <span />}
+    </nav>
+  </article>
+</BaseLayout>

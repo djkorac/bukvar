@@ -1,0 +1,218 @@
+---
+import Icon from "~/components/Icon.svelte";
+import SrTerm from "~/components/SrTerm.astro";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+const description =
+  "Serbian present-tense verbs: the three conjugation patterns, the essential irregular verbs (бити, хтети, моћи, ићи), and what verb aspect means.";
+
+// Verbs and their forms here are all real Bukvar headwords, conjugated by hand
+// (no paradigm pasted from a reference). Bukvar lists verbs in the
+// infinitive; this page shows how that infinitive turns into a finite form.
+
+type ConjRow = { person: string; sr: string; a: string; i: string; e: string };
+const present: ConjRow[] = [
+  { person: "I", sr: "ја", a: "имам", i: "радим", e: "пишем" },
+  { person: "you (sg.)", sr: "ти", a: "имаш", i: "радиш", e: "пишеш" },
+  { person: "he/she/it", sr: "он/она/оно", a: "има", i: "ради", e: "пише" },
+  { person: "we", sr: "ми", a: "имамо", i: "радимо", e: "пишемо" },
+  { person: "you (pl.)", sr: "ви", a: "имате", i: "радите", e: "пишете" },
+  { person: "they", sr: "они/оне/она", a: "имају", i: "раде", e: "пишу" },
+];
+
+type IrregRow = {
+  inf: string;
+  en: string;
+  forms: [string, string, string, string, string, string];
+};
+const irregulars: IrregRow[] = [
+  { inf: "бити", en: "to be", forms: ["сам", "си", "је", "смо", "сте", "су"] },
+  {
+    inf: "хтети",
+    en: "to want",
+    forms: ["хоћу", "хоћеш", "хоће", "хоћемо", "хоћете", "хоће"],
+  },
+  {
+    inf: "моћи",
+    en: "can",
+    forms: ["могу", "можеш", "може", "можемо", "можете", "могу"],
+  },
+  {
+    inf: "ићи",
+    en: "to go",
+    forms: ["идем", "идеш", "иде", "идемо", "идете", "иду"],
+  },
+];
+const persons = ["ја", "ти", "он", "ми", "ви", "они"];
+---
+
+<BaseLayout
+  pageTitle="Serbian verbs: present tense & aspect"
+  description={description}
+>
+  <article class="mx-auto w-full max-w-3xl px-6 py-16">
+    <nav class="mb-6 text-sm text-fg-muted">
+      <a href="/grammar" class="hover:underline">Grammar</a>
+      <span> / </span>
+      <span>Verbs</span>
+    </nav>
+
+    <header class="border-b border-border pb-6">
+      <h1 class="text-4xl font-bold">Verbs: present tense & aspect</h1>
+      <p class="mt-4 text-lg text-fg-muted">
+        Bukvar lists verbs in the <strong class="text-fg">infinitive</strong>,
+        the <SrTerm>-ти</SrTerm> form you'd look up. In a real sentence the verb is
+        conjugated to its subject, and Serbian usually drops the pronoun because
+        the ending already tells you who.
+      </p>
+    </header>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold">The three present-tense patterns</h2>
+      <p class="mt-3 text-fg-muted">
+        Verbs sort into three groups by the vowel before the ending:
+        <SrTerm>-а-</SrTerm>, <SrTerm>-и-</SrTerm>, or <SrTerm>-е-</SrTerm>. The
+        personal endings are nearly the same across all three.
+      </p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-[32rem] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-border text-sm text-fg-muted">
+              <th class="py-2 pr-4 font-medium">Person</th>
+              <th class="py-2 pr-4 font-medium"><span lang="sr">имати</span> <span class="text-xs">(have)</span></th>
+              <th class="py-2 pr-4 font-medium"><span lang="sr">радити</span> <span class="text-xs">(work)</span></th>
+              <th class="py-2 font-medium"><span lang="sr">писати</span> <span class="text-xs">(write)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              present.map((r) => (
+                <tr class="border-b border-border">
+                  <td class="py-3 pr-4">
+                    <span class="text-sm">{r.person}</span>
+                    <span lang="sr" class="block text-xs text-fg-muted">
+                      {r.sr}
+                    </span>
+                  </td>
+                  <td lang="sr" class="py-3 pr-4 font-medium">
+                    {r.a}
+                  </td>
+                  <td lang="sr" class="py-3 pr-4 font-medium">
+                    {r.i}
+                  </td>
+                  <td lang="sr" class="py-3 font-medium">
+                    {r.e}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 text-sm text-fg-muted">
+        The present stem isn't always the infinitive minus <SrTerm>-ти</SrTerm>
+        (note <SrTerm>писати → пиш-</SrTerm>), so it's best to learn the
+        <SrTerm>ја</SrTerm> form first; the other five follow the endings above.
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">Common irregular verbs</h2>
+      <p class="mt-3 text-fg-muted">
+        A handful of the most common verbs don't follow these patterns, and
+        you'll meet them constantly.
+      </p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-[34rem] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-border text-sm text-fg-muted">
+              <th class="py-2 pr-4 font-medium">Verb</th>
+              {
+                persons.map((p) => (
+                  <th lang="sr" class="py-2 pr-4 font-medium">
+                    {p}
+                  </th>
+                ))
+              }
+            </tr>
+          </thead>
+          <tbody>
+            {
+              irregulars.map((v) => (
+                <tr class="border-b border-border">
+                  <td class="py-3 pr-4">
+                    <span lang="sr" class="font-medium">
+                      {v.inf}
+                    </span>
+                    <span class="block text-xs text-fg-muted">{v.en}</span>
+                  </td>
+                  {v.forms.map((f) => (
+                    <td lang="sr" class="py-3 pr-4 font-medium">
+                      {f}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 text-sm text-fg-muted">
+        <SrTerm>бити</SrTerm> and <SrTerm>хтети</SrTerm> also have short "clitic"
+        forms that lean on the previous word (<SrTerm>сам, си, је…</SrTerm> and
+        <SrTerm>ћу, ћеш, ће…</SrTerm>), plus fused negatives (<SrTerm>нисам</SrTerm>
+        "I'm not", <SrTerm>нећу</SrTerm> "I won't").
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">Aspect: two verbs where English has one</h2>
+      <p class="mt-3 text-fg-muted">
+        Serbian aspect has no direct English equivalent. Most verbs come in a
+        pair, and the one you choose says how you see the action.
+      </p>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="rounded-xl border border-border bg-bg-elev p-5">
+          <h3 class="font-semibold">Imperfective</h3>
+          <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+            The action as a <em>process</em>: ongoing, repeated, or habitual. It
+            has a normal present tense, so <SrTerm>Читам књигу</SrTerm> means
+            "I'm reading" or "I read".
+          </p>
+        </div>
+        <div class="rounded-xl border border-border bg-bg-elev p-5">
+          <h3 class="font-semibold">Perfective</h3>
+          <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+            The action as one <em>complete whole</em>: finished, with a result.
+            Its present-tense forms don't mean "right now"; they point to the
+            future or follow <SrTerm>да, кад, чим, ако</SrTerm>.
+          </p>
+        </div>
+      </div>
+      <p class="mt-4 text-fg-muted">
+        The two are usually the same root, set apart by a prefix
+        (<SrTerm>читати → прочитати</SrTerm>, "read" then "read through") or a stem
+        change. It shows up clearly in motion verbs: <SrTerm>ићи</SrTerm> "to be
+        going" is imperfective, while <SrTerm>доћи</SrTerm> "to arrive" and
+        <SrTerm>отићи</SrTerm> "to leave" are perfective, one-off events. So
+        <SrTerm>Идем кући</SrTerm> is "I'm on my way home", but
+        <SrTerm>Дошао сам кући</SrTerm> is "I've got home".
+      </p>
+    </section>
+
+    <p class="mt-10 flex flex-wrap gap-3">
+      <a
+        href="/grammar/gender"
+        class="btn-secondary inline-flex items-center gap-2 px-5 py-2"
+      >
+        Back: noun gender & cases
+      </a>
+      <a
+        href="/app"
+        class="btn-primary inline-flex items-center gap-2 px-5 py-2"
+      >
+        Practise the words <Icon name="arrow-right" />
+      </a>
+    </p>
+  </article>
+</BaseLayout>

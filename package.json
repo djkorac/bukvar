@@ -1,0 +1,67 @@
+{
+  "name": "bukvar",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "yarn@4.16.0+sha512.5374c94eb4ef6aa8188fb112f20c1aa6569f248d676c5e576e1fd2a1a4d8d87a96df65d9dfe1c2a0252cbe38bda46cf18d955005b81b43cc7607a5c9d56fd2b6",
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "brand": "node scripts/outline-brand.mjs",
+    "icons": "node scripts/generate-icons.mjs",
+    "corpus:review": "tsx scripts/export-corpus.ts",
+    "ids:update": "tsx scripts/update-shipped-ids.ts",
+    "freq:report": "tsx scripts/freq-report.ts",
+    "lint": "biome check .",
+    "format": "biome format --write",
+    "fix": "biome check --write",
+    "typecheck": "astro check && svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:e2e": "astro build && playwright test",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,astro,svelte,json,jsonc,css}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  },
+  "resolutions": {
+    "vite": "^7"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/svelte": "^8.1.2",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/source-serif-4": "^5.2.9",
+    "@tailwindcss/vite": "^4.3.2",
+    "astro": "^6.4.8",
+    "dexie": "^4.4.4",
+    "svelte": "^5.56.4",
+    "tailwindcss": "^4.3.2",
+    "ts-fsrs": "^5.4.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@biomejs/biome": "^2.5.3",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/source-serif-4": "^5.2.9",
+    "@playwright/test": "^1.61.1",
+    "@types/fontkit": "^2",
+    "@vite-pwa/astro": "^1.2.0",
+    "fake-indexeddb": "^6.2.5",
+    "fontkit": "^2.0.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "sharp": "^0.35.3",
+    "svelte-check": "^4.7.2",
+    "tsx": "^4.23.0",
+    "typescript": "^6.0.3",
+    "vite": "^7",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,22 @@
+---
+import Levels from "~/components/Levels.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+
+<BaseLayout pageTitle="Levels">
+  <section class="mx-auto w-full max-w-2xl px-6 py-16">
+    <h1 class="text-3xl font-bold">Levels</h1>
+    <p class="mt-2 text-fg-muted">
+      The curriculum, grouped into themed levels in teaching order. Your progress
+      is tracked on this device. Already know a level? Mark it known to skip the
+      grind. Each item still gets one confirming review.
+    </p>
+    <div class="mt-8">
+      <!--
+        client:only="svelte": reads per-item progress from IndexedDB, which
+        only exists in the browser, so it can't be rendered at build time.
+      -->
+      <Levels client:only="svelte" />
+    </div>
+  </section>
+</BaseLayout>

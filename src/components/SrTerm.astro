@@ -1,0 +1,14 @@
+---
+/**
+ * An inline Serbian term sitting inside English prose. Carries `lang="sr"`
+ * (Serbian uses localized Cyrillic glyph forms, so this is required, not
+ * decorative) together with the shared "chip" styling that sets the token apart
+ * from the surrounding English text.
+ *
+ * Use it only for inline terms within running prose. Full-Serbian table cells
+ * (a whole declension or conjugation column) don't need it. There the entire
+ * cell is already, unambiguously, Serbian.
+ */
+---
+
+<span lang="sr" class="rounded bg-primary-soft px-1.5 py-0.5 font-medium"><slot /></span>

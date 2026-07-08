@@ -1,0 +1,74 @@
+---
+import Icon from "~/components/Icon.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+const description =
+  "Noun gender, the seven cases, present-tense verb conjugation, and aspect. A short reference for reading the changed word endings in Serbian sentences.";
+---
+
+<BaseLayout pageTitle="Serbian grammar at a glance" description={description}>
+  <article class="mx-auto w-full max-w-3xl px-6 py-16">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Grammar
+    </p>
+    <h1 class="text-4xl font-bold">Serbian grammar at a glance</h1>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+      Bukvar teaches every word in its <strong class="text-fg"
+        >dictionary form</strong
+      >: nouns as you'd look them up, adjectives in the masculine singular, verbs
+      in the infinitive. Serbian then changes a word's ending to show its role in
+      a sentence, so a word often looks different in an example than it did on its
+      flashcard.
+    </p>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+      These pages cover enough of that system to make sense of what you read.
+      They're a reference, not a grammar course.
+    </p>
+
+    <div class="mt-10 grid gap-6 sm:grid-cols-2">
+      <a
+        href="/grammar/gender"
+        class="rounded-xl border border-border bg-bg-elev p-6 hover:bg-primary-soft"
+      >
+        <h2 class="mb-2 flex items-center justify-between gap-2 text-lg font-semibold">
+          Noun gender & the seven cases
+          <Icon name="arrow-right" />
+        </h2>
+        <p class="text-sm leading-relaxed text-fg-muted">
+          Why <span lang="sr">кафа</span> turns into <span lang="sr">кафу</span>,
+          and <span lang="sr">град</span> into <span lang="sr">граду</span>. How
+          to tell a noun's gender, what the seven cases do, and a full table of
+          singular endings.
+        </p>
+      </a>
+
+      <a
+        href="/grammar/verbs"
+        class="rounded-xl border border-border bg-bg-elev p-6 hover:bg-primary-soft"
+      >
+        <h2 class="mb-2 flex items-center justify-between gap-2 text-lg font-semibold">
+          Verbs: present tense & aspect
+          <Icon name="arrow-right" />
+        </h2>
+        <p class="text-sm leading-relaxed text-fg-muted">
+          How <span lang="sr">радити</span> becomes <span lang="sr">радим</span>,
+          <span lang="sr">радиш</span>, <span lang="sr">ради</span>. The three
+          present-tense patterns, the common irregular verbs, and why Serbian
+          often has two verbs where English has one.
+        </p>
+      </a>
+    </div>
+
+    <p class="mt-10 text-sm text-fg-muted">
+      To practise the words themselves, <a
+        href="/words"
+        class="font-medium text-primary underline underline-offset-4 hover:text-primary-strong"
+        >browse the word list</a
+      > or <a
+        href="/app"
+        class="font-medium text-primary underline underline-offset-4 hover:text-primary-strong"
+        >start a review session</a
+      >.
+    </p>
+  </article>
+</BaseLayout>

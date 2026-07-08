@@ -1,0 +1,27 @@
+---
+import BackupReminder from "~/components/BackupReminder.svelte";
+import CurrentLevel from "~/components/CurrentLevel.svelte";
+import Forecast from "~/components/Forecast.svelte";
+import InstallNudge from "~/components/InstallNudge.svelte";
+import Reviewer from "~/components/Reviewer.svelte";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+
+<BaseLayout pageTitle="Practice">
+  <section class="mx-auto w-full max-w-5xl px-6 py-12">
+    <!--
+      client:only="svelte": these read/write IndexedDB, which exists only in the
+      browser, so they can't be rendered at build time. The reviewer is the one
+      genuinely app-like island; everything else on the site is static.
+    -->
+    <InstallNudge client:only="svelte" />
+    <BackupReminder client:only="svelte" />
+    <div class="mx-auto mb-6 flex w-full max-w-xl">
+      <CurrentLevel client:only="svelte" />
+    </div>
+    <Reviewer client:only="svelte" />
+    <div class="mx-auto mt-10 w-full max-w-xl">
+      <Forecast client:only="svelte" />
+    </div>
+  </section>
+</BaseLayout>

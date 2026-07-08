@@ -1,0 +1,11 @@
+# Cloudflare Pages header rules (copied into dist/ by Astro).
+
+# The service worker script must be revalidated on every app open, or a
+# stale copy delays updates for up to the spec's 24h cap.
+/sw.js
+  Cache-Control: no-cache
+
+# Astro emits content-hashed filenames under /_astro/, so they're safe to
+# cache forever; a change means a new URL.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

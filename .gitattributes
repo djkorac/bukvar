@@ -1,0 +1,5 @@
+# Pin LF in every working tree regardless of the contributor's core.autocrlf.
+# Line-oriented readers (shipped-ids.txt via update-shipped-ids.ts and
+# shipped-ids.test.ts) split on "\n" and would see phantom "\r" ids on a CRLF
+# checkout; Biome also formats with LF.
+* text=auto eol=lf

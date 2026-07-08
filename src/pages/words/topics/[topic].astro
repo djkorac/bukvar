@@ -1,0 +1,106 @@
+---
+import Icon from "~/components/Icon.svelte";
+import WordCard from "~/components/WordCard.astro";
+import { TOPIC_PAGES, type TopicPage } from "~/data/topic-pages";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { wordSlug, wordsForTopics } from "~/lib/content/corpus";
+
+export function getStaticPaths() {
+  return TOPIC_PAGES.map((page) => ({
+    params: { topic: page.slug },
+    props: { page },
+  }));
+}
+
+type Props = { page: TopicPage };
+const { page } = Astro.props;
+const entries = wordsForTopics(page.topics);
+
+// Cross-links to the other landing pages, so each page sits inside the set
+// rather than as an SEO island (and the crawler can reach every one).
+const others = TOPIC_PAGES.filter((p) => p.slug !== page.slug);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "DefinedTermSet",
+  name: page.title,
+  description: page.description,
+  inLanguage: "sr",
+  // Self-referential: derive from the page's own path so this URL is the
+  // canonical form by construction (trailing slash and all) and can't drift
+  // from the <link rel="canonical"> BaseLayout emits from the same source.
+  url: new URL(Astro.url.pathname, Astro.site).toString(),
+  hasDefinedTerm: entries.map((word) => ({
+    "@type": "DefinedTerm",
+    name: word.cyrillic,
+    alternateName: word.latin,
+    description: word.english,
+    url: new URL(`/words/${wordSlug(word.id)}/`, Astro.site).toString(),
+  })),
+};
+---
+
+<BaseLayout pageTitle={page.title} description={page.description} jsonLd={jsonLd}>
+  <section class="mx-auto w-full max-w-5xl px-6 py-16">
+    <nav class="mb-6 text-sm text-fg-muted">
+      <a href="/words" class="hover:underline">Words</a>
+      <span> / </span>
+      <span>{page.title}</span>
+    </nav>
+
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+      Word list
+    </p>
+    <h1 class="text-4xl font-bold">{page.title}</h1>
+    <p class="mt-4 max-w-2xl text-lg text-fg-muted">{page.intro}</p>
+    <p class="mt-2 text-sm text-fg-muted">
+      {entries.length} words, in both Cyrillic and Latin. Each links to its own page
+      with pronunciation and the letters that spell it.
+    </p>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-12">
+    <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {
+        entries.map((word) => (
+          <li>
+            <WordCard word={word} showExample />
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="mt-10 flex flex-wrap gap-3">
+      <a
+        href="/app"
+        class="btn-primary inline-flex items-center gap-2 px-5 py-2"
+      >
+        Practise with spaced repetition <Icon name="arrow-right" />
+      </a>
+      <a
+        href={`/practice?topic=${page.topics.join(",")}`}
+        class="btn-secondary inline-flex items-center gap-2 px-5 py-2"
+      >
+        Quick drill <Icon name="arrow-right" />
+      </a>
+    </p>
+  </section>
+
+  <section class="mx-auto w-full max-w-5xl px-6 pb-24">
+    <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+      More word lists
+    </h2>
+    <div class="flex flex-wrap gap-2">
+      {
+        others.map((p) => (
+          <a
+            href={`/words/topics/${p.slug}`}
+            class="rounded-full border border-border bg-bg-elev px-3 py-1.5 text-sm hover:bg-primary-soft"
+          >
+            {p.title}
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,210 @@
+---
+import Icon from "~/components/Icon.svelte";
+import SrAuto from "~/components/SrAuto.astro";
+import { words } from "~/data/words";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { ASPECT_LABEL, counterpartAspectLabel } from "~/lib/content/aspect";
+import {
+  getWordByCyrillic,
+  letterSlug,
+  lettersInWord,
+  topicPageForTopic,
+  wordSlug,
+} from "~/lib/content/corpus";
+import { GENDER_LABEL } from "~/lib/content/gender";
+import { levelName } from "~/lib/content/levels";
+import type { WordEntry } from "~/lib/content/types";
+
+export function getStaticPaths() {
+  return words.map((word) => ({
+    params: { slug: wordSlug(word.id) },
+    props: { word },
+  }));
+}
+
+type Props = { word: WordEntry };
+const { word } = Astro.props;
+const letters = lettersInWord(word);
+
+// The chip shows the theme's display name (e.g. `verbs-core` → "Common verbs"),
+// the same label the /words hub uses, and links to the topic landing page when
+// one exists. The grab-bag topics (grammar/general/everyday) have none.
+const topicLabel = levelName(word.topic);
+const topicPage = topicPageForTopic(word.topic);
+
+// The aspectual counterpart, resolved for display: its aspect is the opposite of
+// this verb's, and it links to its own page when it's a headword in the deck.
+const partner = word.pair && getWordByCyrillic(word.pair.cyrillic);
+const aspectPair = word.pair
+  ? {
+      ...word.pair,
+      aspectLabel: counterpartAspectLabel(word.aspect),
+      href: partner ? `/words/${wordSlug(partner.id)}` : null,
+    }
+  : null;
+
+const description = `${word.cyrillic} (${word.latin}) means "${word.english}" in Serbian: pronunciation, both scripts, and the Cyrillic letters that spell it.`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "DefinedTerm",
+  name: word.cyrillic,
+  alternateName: word.latin,
+  description: word.english,
+  inLanguage: "sr",
+  inDefinedTermSet: new URL("/words/", Astro.site).toString(),
+};
+---
+
+<BaseLayout
+  pageTitle={`${word.cyrillic} — ${word.english}`}
+  description={description}
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto w-full max-w-2xl px-6 py-16">
+    <nav class="mb-6 text-sm text-fg-muted">
+      <a href="/words" class="hover:underline">Words</a>
+      <span> / </span>
+      <span lang="sr">{word.cyrillic}</span>
+    </nav>
+
+    <header class="border-b border-border pb-6">
+      <h1 lang="sr" class="text-5xl font-bold">{word.cyrillic}</h1>
+      <p class="mt-2 text-xl text-fg-muted">
+        {word.latin}{word.ipa ? ` · ${word.ipa}` : ""}
+      </p>
+      <p class="mt-4 text-2xl font-semibold text-primary">{word.english}</p>
+      <p class="mt-2 flex flex-wrap gap-2 text-xs">
+        {
+          topicPage ? (
+            <a
+              href={`/words/topics/${topicPage.slug}`}
+              class="rounded-full bg-primary-soft px-2 py-1 font-medium hover:underline"
+            >
+              {topicLabel}
+            </a>
+          ) : (
+            <span class="rounded-full bg-primary-soft px-2 py-1 font-medium">
+              {topicLabel}
+            </span>
+          )
+        }
+        {
+          word.pos && (
+            <span class="rounded-full bg-primary-soft px-2 py-1 font-medium">
+              {word.pos}
+            </span>
+          )
+        }
+        {
+          word.gender && (
+            <a
+              href="/grammar/gender"
+              class="rounded-full bg-primary-soft px-2 py-1 font-medium hover:underline"
+              title="Serbian noun gender & cases"
+            >
+              {GENDER_LABEL[word.gender]}
+            </a>
+          )
+        }
+        {
+          word.aspect && (
+            <a
+              href="/grammar/verbs"
+              class="rounded-full bg-primary-soft px-2 py-1 font-medium hover:underline"
+              title="Serbian verbs: tense & aspect"
+            >
+              {ASPECT_LABEL[word.aspect]}
+            </a>
+          )
+        }
+      </p>
+    </header>
+
+    {
+      aspectPair && (
+        <section class="mt-6">
+          <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            Aspect pair
+          </h2>
+          <p class="mt-2">
+            The {aspectPair.aspectLabel} counterpart is{" "}
+            {aspectPair.href ? (
+              <a lang="sr" href={aspectPair.href} class="font-medium hover:underline">
+                {aspectPair.cyrillic}
+              </a>
+            ) : (
+              <span lang="sr" class="font-medium">
+                {aspectPair.cyrillic}
+              </span>
+            )}{" "}
+            <span class="text-fg-muted">({aspectPair.latin})</span>.
+          </p>
+        </section>
+      )
+    }
+
+    {
+      word.mnemonic && (
+        <section class="mt-6">
+          <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            Memory hook
+          </h2>
+          <p class="mt-2"><SrAuto text={word.mnemonic} /></p>
+        </section>
+      )
+    }
+
+    {
+      word.examples && word.examples.length > 0 && (
+        <section class="mt-6">
+          <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+            In a sentence
+          </h2>
+          <ul class="mt-2 flex flex-col gap-3">
+            {word.examples.map((ex) => (
+              <li class="rounded-lg border border-border bg-bg-elev p-4">
+                <p lang="sr" class="font-medium">
+                  {ex.cyrillic}
+                </p>
+                <p class="text-sm text-fg-muted">{ex.latin}</p>
+                <p class="mt-1 text-sm">{ex.english}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section class="mt-8">
+      <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-muted">
+        Letters
+      </h2>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {
+          letters.map((letter) => (
+            <a
+              href={`/alphabet/${letterSlug(letter.id)}`}
+              class="flex items-center gap-2 rounded-lg border border-border bg-bg-elev px-3 py-2 hover:bg-primary-soft"
+            >
+              <span lang="sr" class="text-lg font-bold">
+                {letter.cyrillic}
+                {letter.cyrillicLower}
+              </span>
+              <span class="text-sm text-fg-muted">{letter.latin}</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <p class="mt-10">
+      <a
+        href="/app"
+        class="btn-primary inline-flex items-center gap-2 px-5 py-2"
+      >
+        Practise with spaced repetition <Icon name="arrow-right" />
+      </a>
+    </p>
+  </article>
+</BaseLayout>
