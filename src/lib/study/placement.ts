@@ -42,7 +42,7 @@ export { SKIP_LABEL } from "~/lib/study/answer-review";
 /**
  * The letters that actually distinguish "reads Cyrillic" from "knows the Latin
  * alphabet": the false friends (В=V, Н=N, Р=R, С=S, У=U, Х=H: Latin look-alikes
- * with different sounds) plus two Serbian-specific glyphs (Ј, Љ). A Latin-only
+ * with different sounds) plus two Serbian-specific glyphs (Њ, Љ). A Latin-only
  * reader misses these; someone who reads Cyrillic does not. Kept short so the
  * axis is ~8 probes, not all 30 letters.
  */
@@ -53,8 +53,8 @@ export const SCRIPT_PROBE_CYRILLIC = [
   "С",
   "У",
   "Х",
-  "Ј",
   "Љ",
+  "Њ",
 ] as const;
 
 /** Fraction of script probes that must be correct to count as "reads Cyrillic". */
