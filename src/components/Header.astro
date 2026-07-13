@@ -4,7 +4,7 @@ import { isActive } from "~/lib/nav-active";
 
 const here = Astro.url.pathname;
 const links = [
-  { label: "Practice", href: "/app" },
+  { label: "Practice", href: "/app", primary: true },
   { label: "Levels", href: "/levels" },
   { label: "History", href: "/history" },
 ];
@@ -39,10 +39,17 @@ const learnActive = learn.some((link) => isActive(here, link.href));
             <a
               href={link.href}
               aria-current={isActive(here, link.href) ? "page" : undefined}
-              class:list={[
-                "underline-offset-4 hover:underline",
-                isActive(here, link.href) && "font-semibold text-primary",
-              ]}
+              class:list={
+                link.primary
+                  ? [
+                      "px-3 py-1",
+                      isActive(here, link.href) ? "btn-primary" : "btn-accent",
+                    ]
+                  : [
+                      "underline-offset-4 hover:underline",
+                      isActive(here, link.href) && "font-semibold text-primary",
+                    ]
+              }
             >
               {link.label}
             </a>
