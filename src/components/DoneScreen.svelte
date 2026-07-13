@@ -5,7 +5,6 @@ import Icon from "~/components/Icon.svelte";
 import type { Script } from "~/lib/content/types";
 import { getPreferences, setPreference } from "~/lib/db/settings";
 import type { AnswerReview } from "~/lib/study/answer-review";
-import { getIntradayOutlook, type IntradayOutlook } from "~/lib/study/forecast";
 import { getLevelProgress } from "~/lib/study/levels";
 
 let {
@@ -52,41 +51,18 @@ let {
   onScriptChange: (script: Script) => Promise<boolean>;
 } = $props();
 
-// What's still coming today: the count of reviews due later today and the
-// soonest such due time. Lets this screen say reviews refill the same day
-// instead of implying "see you tomorrow". Null until fetched, and the
-// dependent copy is gated on it, so "nothing more is due today" can't flash
-// before the count arrives.
-let outlook = $state<IntradayOutlook | null>(null);
 // One-time prompt, once a Latin-prompt learner finishes the alphabet, to move
 // their prompts to Cyrillic.
 let showCyrillicNudge = $state(false);
 
-// Two independent best-effort reads: fire each on its own so a failure of one
-// (private browsing, eviction, quota) doesn't suppress the other, and swallow
-// per-read. Both fields default to their feature-absent value.
+// Best-effort read: swallow a failure (private browsing, eviction, quota) so a
+// dropped read just leaves the nudge hidden rather than throwing on mount.
 onMount(() => {
-  getIntradayOutlook()
-    .then((o) => {
-      outlook = o;
-    })
-    .catch(() => {});
   checkCyrillicNudge()
     .then((n) => {
       showCyrillicNudge = n;
     })
     .catch(() => {});
-});
-
-// Human phrase for when the soonest review returns today, so the "later today"
-// line reads concretely ("in a few minutes") rather than vaguely.
-const nextDueLabel = $derived.by(() => {
-  if (!outlook || outlook.nextDueAt === null) return "";
-  const mins = Math.round((outlook.nextDueAt - Date.now()) / 60000);
-  if (mins <= 20) return "in a few minutes";
-  if (mins < 60) return "within the hour";
-  const hours = Math.round(mins / 60);
-  return `in about ${hours} hour${hours === 1 ? "" : "s"}`;
 });
 
 const sessionCorrect = $derived(
@@ -210,15 +186,9 @@ function focusOnMount(node: HTMLElement) {
       No new words left to introduce today.
     {/if}
   </p>
-  {#if outlook && (outlook.dueLaterToday > 0 || !moreNewToday)}
+  {#if !moreNewToday}
     <p class="text-fg-muted">
-      {#if outlook.dueLaterToday >= 2}
-        {outlook.dueLaterToday} review cards come due later today, the first {nextDueLabel}.
-      {:else if outlook.dueLaterToday === 1}
-        One review card comes due {nextDueLabel}.
-      {:else}
-        Nothing more is due today. Come back tomorrow to keep going.
-      {/if}
+      Nothing more is due today. Come back tomorrow to keep going.
     </p>
   {/if}
   {#if streak > 0}

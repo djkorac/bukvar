@@ -20,14 +20,21 @@ import {
 
 /**
  * Scheduler configuration shared across every retention setting. Fuzz spreads
- * otherwise-identical intervals slightly so reviews don't clump on the same day;
- * short-term steps keep brand-new cards in a learning phase for their first few
- * exposures. `request_retention` is deliberately *not* set here. It's the one
+ * otherwise-identical intervals slightly so reviews don't clump on the same day.
+ * `request_retention` is deliberately *not* set here. It's the one
  * learner-tunable knob, supplied per call via {@link schedulerFor}.
+ *
+ * `enable_short_term` is off, so every interval is day-granular: a failed card
+ * comes back tomorrow (a few days for a mature lapse), never in 1-10 minutes.
+ * The reviewer's queue is a fixed per-session snapshot with no in-session
+ * relearning loop, so short-term learning steps couldn't re-drill a lapse in the
+ * same sitting; they'd only re-add it to the day's queue on every reload, so the
+ * day would never drain. Same-day re-drilling is what /practice (SRS-neutral
+ * cram) is for. Don't turn this back on without a live, refilling reviewer queue.
  */
 const baseParams = {
   enable_fuzz: true,
-  enable_short_term: true,
+  enable_short_term: false,
 } as const;
 
 /**

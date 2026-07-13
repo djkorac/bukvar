@@ -13,6 +13,9 @@ dev-dist/
 # generated corpus review export
 corpus-review.csv
 
+# local learner-data backups exported from the app (personal progress, not code)
+bukvar-backup-*.json
+
 # TTS viability testing (local experiments comparing providers)
 audio-eval
 
