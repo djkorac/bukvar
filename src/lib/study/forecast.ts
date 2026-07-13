@@ -44,13 +44,6 @@ export interface Forecast {
   max: number;
 }
 
-export interface IntradayOutlook {
-  /** Review cards (reps > 0) due after `now` but before local midnight. */
-  dueLaterToday: number;
-  /** Soonest such due time (epoch ms), or null when none remain today. */
-  nextDueAt: number | null;
-}
-
 /**
  * Bucket scheduled review cards by the local day they fall due, over a fixed
  * horizon. Only cards with real history (`reps > 0`) count. Unseen cards are
@@ -132,37 +125,4 @@ export const getForecast = async (
   horizonDays: number = HORIZON_DAYS,
 ): Promise<Forecast> => {
   return bucketForecast(await loadDueSnapshots(), now, horizonDays);
-};
-
-/**
- * What's still coming *today*: review cards (reps > 0) not due this instant but
- * falling due before local midnight: the short-term learning steps that bring
- * just-seen cards back within minutes. Drives the done screen's "more later
- * today" line so a learner who finishes a lesson knows reviews refill the same
- * day rather than assuming "see you tomorrow". Pure and deterministic given `now`.
- */
-export const intradayOutlook = (
-  snapshots: DueSnapshot[],
-  now: Date = new Date(),
-): IntradayOutlook => {
-  const nowMs = now.getTime();
-  const tomorrowStart = startOfDay(now);
-  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-  const endMs = tomorrowStart.getTime();
-
-  let dueLaterToday = 0;
-  let nextDueAt: number | null = null;
-  for (const snap of snapshots) {
-    if (snap.reps <= 0 || snap.due <= nowMs || snap.due >= endMs) continue;
-    dueLaterToday += 1;
-    if (nextDueAt === null || snap.due < nextDueAt) nextDueAt = snap.due;
-  }
-  return { dueLaterToday, nextDueAt };
-};
-
-/** Read the deck and tally what's still due later today. Thin IndexedDB wrapper. */
-export const getIntradayOutlook = async (
-  now: Date = new Date(),
-): Promise<IntradayOutlook> => {
-  return intradayOutlook(await loadDueSnapshots(), now);
 };
