@@ -349,13 +349,18 @@ export const grammar = [
   }),
   word({
     cyrillic: "ли",
-    english: "(question particle)",
+    english: "whether (question particle)",
+    accept: ["question particle", "question word"],
     topic: "grammar",
     mnemonic: "The yes/no question particle: 'Да ли…?' or 'Говориш ли…?'",
     examples: [
       {
         cyrillic: "Да ли говориш српски?",
         english: "Do you speak Serbian?",
+      },
+      {
+        cyrillic: "Не знам да ли долази.",
+        english: "I don't know whether he's coming.",
       },
     ],
   }),
