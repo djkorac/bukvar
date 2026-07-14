@@ -39,6 +39,7 @@ export const directions = [
   word({
     cyrillic: "напред",
     english: "forward",
+    accept: ["ahead"],
     topic: "directions",
     mnemonic: "на + пред ('front') — forward; назад uses зад ('back').",
     examples: [
