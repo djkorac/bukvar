@@ -135,6 +135,14 @@ describe("checkAnswer", () => {
     expect(checkAnswer("youre welcome", "you're welcome")).toBe("correct");
   });
 
+  it("accepts a British spelling against an American gloss (and vice versa)", () => {
+    expect(checkAnswer("neighbour", "neighbor")).toBe("correct");
+    expect(checkAnswer("grey", "gray")).toBe("correct");
+    expect(checkAnswer("favourite colour", "favorite color")).toBe("correct");
+    // Folding is symmetric, so a British-authored gloss accepts American too.
+    expect(checkAnswer("theater", "theatre")).toBe("correct");
+  });
+
   it("accepts a verb with or without the infinitive marker", () => {
     expect(checkAnswer("be", "to be")).toBe("correct");
     expect(checkAnswer("to be", "to be")).toBe("correct");

@@ -292,7 +292,7 @@ export const places = [
     cyrillic: "биоскоп",
     gender: "m",
     english: "cinema",
-    accept: ["movie theater", "movie theatre"],
+    accept: ["movie theater"],
     topic: "places",
     pos: n,
     mnemonic:
@@ -308,7 +308,6 @@ export const places = [
     cyrillic: "позориште",
     gender: "n",
     english: "theater",
-    accept: ["theatre"],
     topic: "places",
     pos: n,
     examples: [

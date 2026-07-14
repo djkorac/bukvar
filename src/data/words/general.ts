@@ -248,7 +248,7 @@ export const general = [
     cyrillic: "средина",
     gender: "f",
     english: "middle",
-    accept: ["center", "centre"],
+    accept: ["center"],
     topic: "general",
     pos: n,
     examples: [

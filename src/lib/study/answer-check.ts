@@ -21,7 +21,8 @@ import { type Grade, Rating } from "~/lib/srs/scheduler";
  *
  * Matching is deliberately lenient (this is recall practice, not a spelling
  * test): case-, whitespace-, punctuation-, and diacritic-insensitive, common
- * English contractions are expanded so "what's" and "what is" agree, and a
+ * English contractions are expanded so "what's" and "what is" agree, British
+ * spellings fold to the American form so "neighbour" matches "neighbor", and a
  * one-character typo is accepted as a *near* miss rather than a hard failure.
  */
 
@@ -105,6 +106,69 @@ const CONTRACTION_RE = new RegExp(
 const expandContractions = (s: string): string =>
   s.replace(CONTRACTION_RE, (m) => EXPANSIONS[m] ?? m);
 
+/**
+ * British spellings folded to the American form, applied to gloss and input
+ * alike so either dialect matches whichever one the gloss was authored in.
+ * An explicit word map, not suffix rules: "-our" → "-or" would mangle
+ * four/hour/flour.
+ */
+export const BRITISH_SPELLINGS: Record<string, string> = {
+  aeroplane: "airplane",
+  apologise: "apologize",
+  armour: "armor",
+  behaviour: "behavior",
+  cancelled: "canceled",
+  catalogue: "catalog",
+  centre: "center",
+  cheque: "check",
+  colour: "color",
+  defence: "defense",
+  dialogue: "dialog",
+  doughnut: "donut",
+  draught: "draft",
+  favourite: "favorite",
+  fibre: "fiber",
+  flavour: "flavor",
+  grey: "gray",
+  harbour: "harbor",
+  honour: "honor",
+  humour: "humor",
+  jewellery: "jewelry",
+  kerb: "curb",
+  labour: "labor",
+  licence: "license",
+  litre: "liter",
+  metre: "meter",
+  moustache: "mustache",
+  mum: "mom",
+  neighbour: "neighbor",
+  neighbourhood: "neighborhood",
+  offence: "offense",
+  organise: "organize",
+  plough: "plow",
+  practise: "practice",
+  programme: "program",
+  pyjamas: "pajamas",
+  realise: "realize",
+  recognise: "recognize",
+  rumour: "rumor",
+  storey: "story",
+  theatre: "theater",
+  travelled: "traveled",
+  traveller: "traveler",
+  travelling: "traveling",
+  tyre: "tire",
+  yoghurt: "yogurt",
+};
+
+const BRITISH_RE = new RegExp(
+  `\\b(?:${Object.keys(BRITISH_SPELLINGS).join("|")})\\b`,
+  "g",
+);
+
+const foldBritishSpellings = (s: string): string =>
+  s.replace(BRITISH_RE, (m) => BRITISH_SPELLINGS[m] ?? m);
+
 /** The verdict for a typed answer, ordered from best to worst. */
 export type RecallOutcome = "correct" | "near" | "wrong";
 
@@ -127,6 +191,7 @@ export const normalizeAnswer = (input: string): string => {
     // Normalise curly apostrophes (mobile autocorrect) so contractions match.
     .replace(/[‘’]/g, "'");
   s = expandContractions(s);
+  s = foldBritishSpellings(s);
   // Fold every run of punctuation/whitespace (internal commas, apostrophes,
   // and "?" included) to one space. Recall practice grades meaning, not
   // punctuation, so "the bill please" and "the bill, please" must agree.

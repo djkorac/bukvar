@@ -134,7 +134,6 @@ export const colours = [
   word({
     cyrillic: "сив",
     english: "grey",
-    accept: ["gray"],
     topic: "colours",
     pos: a,
     examples: [
