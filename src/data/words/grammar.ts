@@ -127,6 +127,7 @@ export const grammar = [
   word({
     cyrillic: "па",
     english: "so / and then",
+    accept: ["well"],
     topic: "grammar",
     examples: [
       {
