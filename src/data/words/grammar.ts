@@ -81,9 +81,8 @@ export const grammar = [
   word({
     cyrillic: "иако",
     english: "although",
+    accept: ["even though"],
     topic: "grammar",
-    mnemonic:
-      "и ('even') + ако ('if') — literally 'even if', hence 'although'.",
     examples: [
       {
         cyrillic: "Изашли смо иако је падала киша.",
