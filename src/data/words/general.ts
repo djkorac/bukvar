@@ -193,6 +193,7 @@ export const general = [
     cyrillic: "ред",
     gender: "m",
     english: "order / row / queue",
+    accept: ["line"],
     topic: "general",
     pos: n,
     mnemonic:
@@ -248,7 +249,7 @@ export const general = [
     cyrillic: "средина",
     gender: "f",
     english: "middle",
-    accept: ["center", "centre"],
+    accept: ["center"],
     topic: "general",
     pos: n,
     examples: [

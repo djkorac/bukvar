@@ -7,7 +7,7 @@ export const people = [
     cyrillic: "мајка",
     gender: "f",
     english: "mother",
-    accept: ["mom", "mum"],
+    accept: ["mom"],
     topic: "people",
     pos: n,
     examples: [

@@ -142,11 +142,12 @@ export const greetings = [
   word({
     cyrillic: "пријатно",
     english: "enjoy / have a nice time",
+    accept: ["have a nice day"],
     topic: "greetings",
     examples: [
       {
-        cyrillic: "Пријатно! Уживајте у јелу.",
-        english: "Enjoy! Have a nice meal.",
+        cyrillic: "Пријатно, дођите нам опет!",
+        english: "Have a nice day, come again!",
       },
     ],
   }),
