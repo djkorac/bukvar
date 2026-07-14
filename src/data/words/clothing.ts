@@ -100,6 +100,7 @@ export const clothing = [
     cyrillic: "џемпер",
     gender: "m",
     english: "sweater",
+    accept: ["jumper", "pullover"],
     topic: "clothing",
     pos: n,
     mnemonic: "џемпер ↔ English 'jumper' (a pullover).",
