@@ -41,13 +41,13 @@
     "@tailwindcss/vite": "^4.3.2",
     "astro": "^6.4.8",
     "dexie": "^4.4.4",
-    "svelte": "^5.56.4",
+    "svelte": "^5.56.5",
     "tailwindcss": "^4.3.2",
     "ts-fsrs": "^5.4.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@biomejs/biome": "^2.5.3",
+    "@biomejs/biome": "^2.5.4",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/source-serif-4": "^5.2.9",
     "@playwright/test": "^1.61.1",
@@ -59,7 +59,7 @@
     "lint-staged": "^17.0.8",
     "sharp": "^0.35.3",
     "svelte-check": "^4.7.2",
-    "tsx": "^4.23.0",
+    "tsx": "^4.23.1",
     "typescript": "^6.0.3",
     "vite": "^7",
     "vitest": "^4.1.10"
