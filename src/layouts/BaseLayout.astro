@@ -140,7 +140,33 @@ const ogImage = new URL("/og.png", Astro.site).toString();
     <script>
       import { registerSW } from "virtual:pwa-register";
 
-      registerSW({ immediate: true });
+      // Clicks are delegated to document and the toast re-synced on
+      // astro:page-load because the ClientRouter swap replaces <body>,
+      // discarding the toast element and any listeners bound directly to it.
+      let needRefresh = false;
+      const syncToast = () => {
+        const toast = document.getElementById("sw-update-toast");
+        if (toast) toast.hidden = !needRefresh;
+      };
+
+      const updateSW = registerSW({
+        immediate: true,
+        onNeedRefresh: () => {
+          needRefresh = true;
+          syncToast();
+        },
+      });
+
+      document.addEventListener("astro:page-load", syncToast);
+      document.addEventListener("click", (e) => {
+        if (!(e.target instanceof Element)) return;
+        if (e.target.closest("[data-sw-reload]")) {
+          updateSW(true);
+        } else if (e.target.closest("[data-sw-dismiss]")) {
+          needRefresh = false;
+          syncToast();
+        }
+      });
     </script>
 
     <ClientRouter />
@@ -151,5 +177,19 @@ const ogImage = new URL("/og.png", Astro.site).toString();
       <slot />
     </main>
     <Footer />
+    <div
+      id="sw-update-toast"
+      role="status"
+      hidden
+      class="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-border bg-bg-elev p-4 shadow-lg"
+    >
+      <p class="flex-1 text-sm">A new version of Bukvar is ready.</p>
+      <button type="button" data-sw-dismiss class="btn-secondary px-3 py-1.5 text-sm">
+        Later
+      </button>
+      <button type="button" data-sw-reload class="btn-primary px-3 py-1.5 text-sm">
+        Update
+      </button>
+    </div>
   </body>
 </html>

@@ -18,7 +18,10 @@ export default defineConfig({
       filter: (page) => !isNoindex(new URL(page).pathname),
     }),
     AstroPWA({
-      registerType: "autoUpdate",
+      // Prompt mode still self-updates: a waiting worker activates once the
+      // app fully closes, so the toast (BaseLayout) is only an "update now"
+      // shortcut.
+      registerType: "prompt",
       // Registration + manifest link are injected manually in BaseLayout.astro
       // because @vite-pwa/astro 1.x doesn't auto-inject under Astro 6.
       injectRegister: false,
