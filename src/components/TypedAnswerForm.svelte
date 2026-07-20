@@ -1,16 +1,20 @@
 <script lang="ts">
-import type { StudyItem } from "~/lib/content/types";
+import type { CardKind } from "~/lib/content/types";
 
-// `answer` is bindable rather than owned here: the Reviewer reads it live; the
-// recap row records what was typed (even on an Esc "I don't know"), and
-// resetCard clears it between cards.
+// `answer` is bindable rather than owned here: the caller reads it live; the
+// recap row records what was typed (even on an Esc "I don't know"), and the
+// caller clears it between cards. Takes the prompt's kind and front text
+// rather than a full StudyItem so the placement test's word probes can use the
+// same form as the Reviewer's cards.
 let {
-  item,
+  kind,
+  front,
   answer = $bindable(),
   onCheck,
   onUnknown,
 }: {
-  item: StudyItem;
+  kind: CardKind;
+  front: string;
   answer: string;
   onCheck: () => void;
   onUnknown: () => void;
@@ -39,10 +43,10 @@ function autofocus(node: HTMLInputElement) {
     autocomplete="off"
     autocorrect="off"
     spellcheck="false"
-    aria-label={item.kind === "letter"
-      ? `Type the Latin letter for ${item.front}`
-      : `Type the meaning of ${item.front} in English`}
-    placeholder={item.kind === "letter"
+    aria-label={kind === "letter"
+      ? `Type the Latin letter for ${front}`
+      : `Type the meaning of ${front} in English`}
+    placeholder={kind === "letter"
       ? "Type the Latin letter"
       : "Type the meaning in English"}
     class="w-full rounded-lg border border-border bg-bg px-4 py-3 text-center text-lg focus:border-primary focus:outline-none"

@@ -683,7 +683,8 @@ function handleKey(event: KeyboardEvent) {
         </button>
       {:else}
         <TypedAnswerForm
-          item={current}
+          kind={current.kind}
+          front={current.front}
           bind:answer
           onCheck={checkTyped}
           onUnknown={markUnknown}

@@ -57,7 +57,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   script: "cyrillic",
   reviewMode: "type",
   dailyGoal: 20,
-  newPerDay: 15,
+  newPerDay: 10,
   batchSize: 5,
   requestRetention: DEFAULT_REQUEST_RETENTION,
   onboarded: false,

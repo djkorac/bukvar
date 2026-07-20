@@ -3,8 +3,10 @@ import { LEVELS, type Level } from "~/data/levels";
 import { words } from "~/data/words";
 import type { LetterEntry, Topic, WordEntry } from "~/lib/content/types";
 import { buildQuestion, type DrillQuestion } from "~/lib/study/alphabet-drill";
+import { checkAnswer } from "~/lib/study/answer-check";
 import type { AnswerReview } from "~/lib/study/answer-review";
-import { buildOptions, shuffle } from "~/lib/study/drill";
+import { SKIP_LABEL } from "~/lib/study/answer-review";
+import { shuffle } from "~/lib/study/drill";
 
 export type { AnswerReview } from "~/lib/study/answer-review";
 export { SKIP_LABEL } from "~/lib/study/answer-review";
@@ -85,8 +87,6 @@ export const canReadCyrillic = (correct: number, total: number): boolean =>
 
 /** Words sampled from each section. A section is "known" only if all are right. */
 export const SECTION_PROBES = 3;
-/** Multiple-choice options per vocabulary probe (the gloss plus distractors). */
-export const VOCAB_OPTION_COUNT = 4;
 
 /** The word sections to probe, in curriculum order (every level but the alphabet). */
 export const PLACEMENT_TOPICS: Topic[] = LEVELS.filter(
@@ -101,47 +101,22 @@ for (const w of words) {
   else wordsByTopic.set(w.topic, [w]);
 }
 
-/** One "what does this word mean?" recognition question. */
-export interface VocabProbe {
-  word: WordEntry;
-  /** English glosses, shuffled, including the correct one. */
-  options: string[];
-  /** The correct English gloss. */
-  answer: string;
-}
-
-const buildVocabProbe = (
-  word: WordEntry,
-  pool: WordEntry[],
-  rng: () => number,
-): VocabProbe => {
-  const answer = word.english;
-  return {
-    word,
-    answer,
-    options: buildOptions(
-      answer,
-      [pool],
-      (w) => w.english,
-      VOCAB_OPTION_COUNT,
-      rng,
-    ),
-  };
-};
-
 /**
- * Up to {@link SECTION_PROBES} recognition questions sampled from one section
- * (curriculum {@link Topic}). Distractor glosses are drawn from the whole corpus
- * so a wrong answer is a real confusion, not an in-topic giveaway. Sections are
- * disjoint (a word has exactly one topic), so a probe never repeats across them.
+ * Up to {@link SECTION_PROBES} words sampled from one section (curriculum
+ * {@link Topic}), probed by *typed recall*: the learner types the English
+ * meaning, graded by the reviewer's own {@link checkAnswer}. Deliberately not
+ * multiple choice: the cards demand production, and recognizing a word in a
+ * 4-option lineup is a much easier skill, so recognition probes over-credit
+ * partial knowledge and the seeded cards then fail their confirming reviews in
+ * bulk. Passing typed recalls is evidence about the skill actually being
+ * scheduled. Sections are disjoint (a word has exactly one topic), so a probe
+ * never repeats across them.
  */
 export const buildSectionProbes = (
   topic: Topic,
   rng: () => number = Math.random,
-): VocabProbe[] =>
-  shuffle(wordsByTopic.get(topic) ?? [], rng)
-    .slice(0, SECTION_PROBES)
-    .map((w) => buildVocabProbe(w, words, rng));
+): WordEntry[] =>
+  shuffle(wordsByTopic.get(topic) ?? [], rng).slice(0, SECTION_PROBES);
 
 /** A section counts as known only when every sampled probe was answered right. */
 export const sectionPassed = (correct: number, total: number): boolean =>
@@ -209,12 +184,22 @@ export const reviewScript = (
   isCorrect: chosen === q.answer,
 });
 
-/** A review row for a vocabulary (word-meaning) probe. */
-export const reviewVocab = (p: VocabProbe, chosen: string): AnswerReview => ({
-  id: p.word.id,
-  prompt: p.word.cyrillic,
-  promptSub: p.word.latin,
-  chosen,
-  correct: p.answer,
-  isCorrect: chosen === p.answer,
-});
+/**
+ * Score a typed vocabulary probe into a review row. Mirrors the reviewer's
+ * `reviewTyped` rules: a near-miss (one-character slip) counts as knowing the
+ * word but displays the canonical gloss rather than the typo, and an empty
+ * answer (the "I don't know" decline) reads as {@link SKIP_LABEL} and scores
+ * wrong. The word's `accept` alternates count, exactly as they would on the
+ * card itself.
+ */
+export const reviewVocab = (word: WordEntry, typed: string): AnswerReview => {
+  const outcome = checkAnswer(typed, word.english, word.accept);
+  return {
+    id: word.id,
+    prompt: word.cyrillic,
+    promptSub: word.latin,
+    chosen: outcome === "near" ? word.english : typed.trim() || SKIP_LABEL,
+    correct: word.english,
+    isCorrect: outcome !== "wrong",
+  };
+};

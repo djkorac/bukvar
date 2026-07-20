@@ -14,7 +14,6 @@ import {
   SECTION_PROBES,
   SKIP_LABEL,
   sectionPassed,
-  VOCAB_OPTION_COUNT,
   wordsKnownFromSections,
 } from "./placement";
 
@@ -60,20 +59,14 @@ describe("PLACEMENT_TOPICS", () => {
 });
 
 describe("buildSectionProbes", () => {
-  it("samples in-topic words with the gloss among four options", () => {
+  it("samples up to the probe cap from within the topic", () => {
     const probes = buildSectionProbes(
       "greetings",
       seqRng([0.2, 0.7, 0.4, 0.9, 0.1]),
     );
     expect(probes.length).toBeGreaterThan(0);
     expect(probes.length).toBeLessThanOrEqual(SECTION_PROBES);
-    for (const p of probes) {
-      expect(p.word.topic).toBe("greetings");
-      expect(p.answer).toBe(p.word.english);
-      expect(p.options).toContain(p.answer);
-      expect(p.options).toHaveLength(VOCAB_OPTION_COUNT);
-      expect(new Set(p.options).size).toBe(VOCAB_OPTION_COUNT);
-    }
+    for (const w of probes) expect(w.topic).toBe("greetings");
   });
 
   it("never repeats a word within a section", () => {
@@ -81,14 +74,14 @@ describe("buildSectionProbes", () => {
       "verbs",
       seqRng([0.3, 0.6, 0.9, 0.2, 0.5]),
     );
-    const ids = probes.map((p) => p.word.id);
+    const ids = probes.map((w) => w.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("is deterministic for a given RNG sequence", () => {
     const run = () =>
       buildSectionProbes("food", seqRng([0.15, 0.55, 0.35, 0.75, 0.95])).map(
-        (p) => ({ id: p.word.id, options: p.options }),
+        (w) => w.id,
       );
     expect(run()).toEqual(run());
   });
@@ -161,19 +154,37 @@ describe("answer review", () => {
     expect(reviewScript(q, SKIP_LABEL).isCorrect).toBe(false);
   });
 
-  it("carries the word's Latin form and treats a skip as wrong", () => {
-    const [p] = buildSectionProbes(
+  it("grades a typed gloss and carries the word's Latin form", () => {
+    const [w] = buildSectionProbes(
       "greetings",
       seqRng([0.2, 0.7, 0.4, 0.9, 0.1]),
     );
-    expect(reviewVocab(p, p.answer)).toEqual({
-      id: p.word.id,
-      prompt: p.word.cyrillic,
-      promptSub: p.word.latin,
-      chosen: p.answer,
-      correct: p.answer,
+    expect(reviewVocab(w, w.english)).toEqual({
+      id: w.id,
+      prompt: w.cyrillic,
+      promptSub: w.latin,
+      chosen: w.english,
+      correct: w.english,
       isCorrect: true,
     });
-    expect(reviewVocab(p, SKIP_LABEL).isCorrect).toBe(false);
+  });
+
+  it("counts a near-miss as correct but shows the canonical gloss", () => {
+    const word = words.find((w) => w.english === "water");
+    expect(word).toBeDefined();
+    if (!word) return;
+    const row = reviewVocab(word, "watr");
+    expect(row.isCorrect).toBe(true);
+    expect(row.chosen).toBe("water");
+  });
+
+  it("treats an empty answer as a skip and scores it wrong", () => {
+    const [w] = buildSectionProbes(
+      "greetings",
+      seqRng([0.2, 0.7, 0.4, 0.9, 0.1]),
+    );
+    const row = reviewVocab(w, "");
+    expect(row.isCorrect).toBe(false);
+    expect(row.chosen).toBe(SKIP_LABEL);
   });
 });
