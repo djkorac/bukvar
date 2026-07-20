@@ -2,13 +2,14 @@
 import { onMount } from "svelte";
 import AnswerRow from "~/components/AnswerRow.svelte";
 import Icon from "~/components/Icon.svelte";
+import TypedAnswerForm from "~/components/TypedAnswerForm.svelte";
 import { LEVELS } from "~/data/levels";
-import { levelNumber } from "~/lib/content/levels";
-import type { Script, Topic } from "~/lib/content/types";
+import { levelItemIds, levelNumber } from "~/lib/content/levels";
+import type { Script, Topic, WordEntry } from "~/lib/content/types";
 import { ensureStorageReady } from "~/lib/db/seed";
 import { setPreference } from "~/lib/db/settings";
 import type { DrillQuestion } from "~/lib/study/alphabet-drill";
-import { markKnown, markLevelKnown } from "~/lib/study/levels";
+import { markKnown } from "~/lib/study/levels";
 import {
   type AnswerReview,
   buildScriptProbes,
@@ -21,7 +22,6 @@ import {
   type SectionOutcome,
   SKIP_LABEL,
   sectionPassed,
-  type VocabProbe,
   wordsKnownFromSections,
 } from "~/lib/study/placement";
 import { createTapLock } from "~/lib/study/tap-lock";
@@ -30,14 +30,15 @@ import { createTapLock } from "~/lib/study/tap-lock";
  * The onboarding placement test island. View-only: every decision (which letters
  * to probe, which words per section, what counts as "known") comes from
  * `lib/study/placement.ts`; this component renders the questions and, at the end,
- * persists the result via the existing seeding primitive
- * (`markKnown`/`markLevelKnown`). The estimate is soft: seeded cards each get one
- * confirming review, so over-marking self-heals.
+ * persists the result via the existing seeding primitive (`markKnown`). The
+ * estimate is soft: seeded cards each get one confirming review, so over-marking
+ * self-heals.
  *
  * The vocabulary axis walks the curriculum **section by section** (every word
  * level), sampling a few words from each and marking a section known only when
- * the learner clears it in full. There is no difficulty ordering and no
- * cross-section sweep: each section stands on its own evidence.
+ * the learner clears it in full. Probes are typed recall, the same skill the
+ * reviewer grades (see `buildSectionProbes` for why). There is no difficulty
+ * ordering and no cross-section sweep: each section stands on its own evidence.
  *
  * Used in two places with the same flow: inline on first run (the Reviewer's
  * onboarding) and standalone on `/placement` for a re-take. `onComplete` lets the
@@ -68,11 +69,12 @@ let scriptIndex = $state(0);
 let scriptCorrect = $state(0);
 let scriptReviews = $state<AnswerReview[]>([]);
 
-// Vocabulary axis: one section (word topic) at a time.
+// Vocabulary axis: one section (word topic) at a time, probed by typed recall.
 let sectionIndex = $state(0);
-let sectionProbes = $state<VocabProbe[]>([]);
+let sectionProbes = $state<WordEntry[]>([]);
 let probeIndex = $state(0);
 let sectionCorrect = $state(0);
+let answer = $state("");
 // Per-section scratch (not rendered live, so plain arrays): the ids answered
 // right and the rows for this section, folded into the reactive state on finish.
 let sectionCorrectIds: string[] = [];
@@ -204,14 +206,17 @@ function finalizeSection() {
   loadSection();
 }
 
-function answerVocab(option: string) {
-  const p = sectionProbes[probeIndex];
-  if (!p || tapLocked()) return;
-  sectionReviews.push(reviewVocab(p, option));
-  if (option === p.answer) {
+// Score a typed probe (empty string = the "I don't know" decline) and advance.
+function answerVocab(typed: string) {
+  const word = sectionProbes[probeIndex];
+  if (!word || tapLocked()) return;
+  const row = reviewVocab(word, typed);
+  sectionReviews.push(row);
+  if (row.isCorrect) {
     sectionCorrect += 1;
-    sectionCorrectIds.push(p.word.id);
+    sectionCorrectIds.push(word.id);
   }
+  answer = "";
   if (probeIndex + 1 < sectionProbes.length) {
     probeIndex += 1;
   } else {
@@ -235,8 +240,13 @@ async function finish() {
       outcomes.filter((o) => o.passed).map((o) => o.topic),
     );
     await setPreference("script", readsCyrillic ? "cyrillic" : "latin");
-    if (readsCyrillic) await markLevelKnown("alphabet");
-    await markKnown(wordsKnownFromSections(outcomes));
+    // One markKnown call for everything (alphabet first, then words in
+    // curriculum order): the confirmation drip's per-day cap is per call, so
+    // separate calls would each start at day one and stack on the same days.
+    await markKnown([
+      ...(readsCyrillic ? levelItemIds(LEVELS[0]) : []),
+      ...wordsKnownFromSections(outcomes),
+    ]);
     await setPreference("onboarded", true);
     const level = projectedStartLevel(passedTopics, readsCyrillic);
     startLabel = `Level ${levelNumber(level)} · ${level.name}`;
@@ -277,11 +287,9 @@ function handleKey(event: KeyboardEvent) {
     else if (event.key >= "1" && event.key <= String(q.options.length))
       answerScript(q.options[Number(event.key) - 1]);
   } else if (phase === "vocab") {
-    const p = sectionProbes[probeIndex];
-    if (!p) return;
-    if (event.key === "5") answerVocab(SKIP_LABEL);
-    else if (event.key >= "1" && event.key <= String(p.options.length))
-      answerVocab(p.options[Number(event.key) - 1]);
+    // Typing happens in the answer box (Enter submits via the form); the only
+    // global key is Esc for "I don't know", mirroring the Reviewer's typed mode.
+    if (event.key === "Escape") answerVocab("");
   }
 }
 
@@ -291,18 +299,18 @@ const sectionName = $derived(
   levelNameByTopic.get(PLACEMENT_TOPICS[sectionIndex]) ?? "",
 );
 
-// Answering destroys the clicked option button (options rebuild per question),
-// which would silently drop keyboard focus to <body> between questions. Pull
-// focus back to the question card on every advance so Tab reaches the new
-// options directly and screen readers read on from the question. The card, not
-// an option: a focused option would let a held-down Enter chain-answer several
-// questions via native button activation, with no undo here.
+// Script phase only: answering destroys the clicked option button (options
+// rebuild per question), which would silently drop keyboard focus to <body>
+// between questions. Pull focus back to the question card on every advance so
+// Tab reaches the new options directly and screen readers read on from the
+// question. The card, not an option: a focused option would let a held-down
+// Enter chain-answer several questions via native button activation, with no
+// undo here. The vocab phase needs none of this: its answer form persists
+// across probes, so the input keeps focus and the learner just types on.
 let questionEl = $state<HTMLElement | undefined>();
 $effect(() => {
   void scriptIndex;
-  void sectionIndex;
-  void probeIndex;
-  if ((phase === "script" || phase === "vocab") && questionEl) {
+  if (phase === "script" && questionEl) {
     questionEl.focus({ preventScroll: true });
   }
 });
@@ -329,9 +337,9 @@ function focusOnMount(node: HTMLElement) {
       <div>
         <p class="text-lg font-semibold">Let's find your starting point</p>
         <p class="mt-1 text-sm text-fg-muted">
-          A quick check: read a few Cyrillic letters, then pick the meaning of
+          A quick check: read a few Cyrillic letters, then type the meaning of
           a handful of words from each topic. We only skip a topic you get every
-          word right on; tap "I don't know this" instead of guessing. New to
+          word right on; tap "I don't know" instead of guessing. New to
           Serbian? Skip it and start from the beginning.
         </p>
       </div>
@@ -428,39 +436,23 @@ function focusOnMount(node: HTMLElement) {
       Vocabulary · topic {sectionIndex + 1} of {PLACEMENT_TOPICS.length} · {sectionName}
     </p>
     <div
-      bind:this={questionEl}
-      tabindex="-1"
-      class="flex flex-col items-center gap-1 rounded-2xl border border-border bg-bg-elev p-10 text-center shadow-sm focus:outline-none"
+      class="flex flex-col items-center gap-1 rounded-2xl border border-border bg-bg-elev p-10 text-center shadow-sm"
     >
       <span class="text-xs font-semibold uppercase tracking-[0.18em] text-fg-muted">
         What does this word mean?
       </span>
       <p lang="sr" class="text-5xl font-bold leading-none">
-        {vocabCurrent.word.cyrillic}
+        {vocabCurrent.cyrillic}
       </p>
-      <p class="text-xl text-fg-muted">{vocabCurrent.word.latin}</p>
+      <p class="text-xl text-fg-muted">{vocabCurrent.latin}</p>
     </div>
-    <div class="grid grid-cols-1 gap-2">
-      {#each vocabCurrent.options as option, i (option)}
-        <button
-          type="button"
-          onclick={() => answerVocab(option)}
-          class="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-left font-medium transition hover:bg-primary-soft"
-        >
-          <span>{option}</span>
-          <span class="text-xs text-fg-muted">{i + 1}</span>
-        </button>
-      {/each}
-    </div>
-    <button
-      type="button"
-      onclick={() => answerVocab(SKIP_LABEL)}
-      class="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm font-medium text-fg-muted transition hover:bg-primary-soft hover:text-fg"
-    >
-      <span class="w-4" aria-hidden="true"></span>
-      <span>I don't know this</span>
-      <span class="w-4 text-right text-xs text-fg-muted">5</span>
-    </button>
+    <TypedAnswerForm
+      kind="word"
+      front={vocabCurrent.cyrillic}
+      bind:answer
+      onCheck={() => answer.trim() && answerVocab(answer)}
+      onUnknown={() => answerVocab("")}
+    />
   {:else if phase === "results"}
     <div
       tabindex="-1"
@@ -571,8 +563,8 @@ function focusOnMount(node: HTMLElement) {
       this? <span lang="sr">{scriptCurrent.letter.cyrillic}</span>
     {:else if phase === "vocab" && vocabCurrent}
       Vocabulary, {sectionName}, {probeIndex + 1} of {sectionProbes.length}.
-      What does <span lang="sr">{vocabCurrent.word.cyrillic}</span>
-      ({vocabCurrent.word.latin}) mean?
+      Type what <span lang="sr">{vocabCurrent.cyrillic}</span>
+      ({vocabCurrent.latin}) means.
     {:else if phase === "results"}
       All set. We'll start you around {startLabel}.
     {:else if phase === "error"}

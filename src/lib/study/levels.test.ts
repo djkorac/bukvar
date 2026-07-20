@@ -2,7 +2,7 @@ import { State } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
 import type { CardRecord } from "~/lib/db/db";
 import { newCard } from "~/lib/srs/scheduler";
-import { promoteToKnown, SEED_DISPERSAL_DAYS } from "~/lib/study/levels";
+import { promoteToKnown, SEED_CONFIRMATIONS_PER_DAY } from "~/lib/study/levels";
 
 const now = new Date("2026-06-05T09:00:00Z");
 const DAY_MS = 86_400_000;
@@ -49,15 +49,15 @@ describe("promoteToKnown", () => {
     expect(promoteToKnown([studied], ["word-c"], now)).toEqual([]);
   });
 
-  it("disperses a batch across distinct, ascending days instead of clumping", () => {
+  it("schedules a small batch entirely on tomorrow, under the daily cap", () => {
     const ids = ["w0", "w1", "w2", "w3", "w4"];
     const updated = promoteToKnown(
       ids.map((id) => record(id)),
       ids,
       now,
     );
-    // One per day, tomorrow onward, not all stacked on a single FSRS interval.
-    expect(updated.map(dueOffsetDays)).toEqual([1, 2, 3, 4, 5]);
+    // All fit under the cap: everything confirms tomorrow, today stays clear.
+    expect(updated.map(dueOffsetDays)).toEqual([1, 1, 1, 1, 1]);
   });
 
   it("keeps fsrs scheduled_days in sync with the dispersed due date", () => {
@@ -73,9 +73,9 @@ describe("promoteToKnown", () => {
     }
   });
 
-  it("wraps round-robin once the window is full, staying within it", () => {
+  it("caps each day at the rate and rolls the overflow to later days", () => {
     const ids = Array.from(
-      { length: SEED_DISPERSAL_DAYS + 2 },
+      { length: SEED_CONFIRMATIONS_PER_DAY * 2 + 1 },
       (_, i) => `w${i}`,
     );
     const updated = promoteToKnown(
@@ -84,10 +84,14 @@ describe("promoteToKnown", () => {
       now,
     );
     const offsets = updated.map(dueOffsetDays);
-    // Days 1..N, then the overflow wraps back to days 1 and 2.
-    expect(Math.min(...offsets)).toBe(1);
-    expect(Math.max(...offsets)).toBe(SEED_DISPERSAL_DAYS);
-    expect(offsets[SEED_DISPERSAL_DAYS]).toBe(1);
-    expect(offsets[SEED_DISPERSAL_DAYS + 1]).toBe(2);
+    // Exactly the cap on day 1 and day 2, then the remainder on day 3. The
+    // window grows with the batch; no day ever exceeds the rate.
+    expect(offsets.filter((o) => o === 1)).toHaveLength(
+      SEED_CONFIRMATIONS_PER_DAY,
+    );
+    expect(offsets.filter((o) => o === 2)).toHaveLength(
+      SEED_CONFIRMATIONS_PER_DAY,
+    );
+    expect(offsets.filter((o) => o === 3)).toHaveLength(1);
   });
 });

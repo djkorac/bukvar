@@ -12,9 +12,9 @@ import { startFresh } from "./helpers";
  * The unit suite covers the probe/seeding logic (`lib/study/placement.ts`) in
  * isolation; this covers the island driving those writes in the built bundle.
  *
- * Probes are randomized, but every multiple-choice answer is computable: the
- * script answer via the corpus' 1:1 Cyrillic→Latin mapping, and vocabulary via
- * the always-present "I don't know this" decline.
+ * Probes are randomized, but every answer is computable: the script answer via
+ * the corpus' 1:1 Cyrillic→Latin mapping, and the typed vocabulary probes via
+ * the always-present "I don't know" decline.
  */
 
 // Cyrillic→Latin for answering script probes off the displayed glyph.
@@ -76,7 +76,7 @@ test("places a Cyrillic reader past the alphabet and persists it", async ({
     (await vocabHeader.textContent())?.match(/of (\d+)/)?.[1],
   );
   const maxDeclines = topicTotal * SECTION_PROBES;
-  const decline = page.getByRole("button", { name: "I don't know this" });
+  const decline = page.getByRole("button", { name: /^I don't know/ });
   const results = page.getByText("All set!");
   for (let i = 0; i < maxDeclines; i++) {
     await expect(decline.or(results).first()).toBeVisible();

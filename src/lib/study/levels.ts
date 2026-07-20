@@ -33,23 +33,23 @@ export const getLevelProgress = async (): Promise<LevelSummary> => {
 };
 
 /**
- * Confirming reviews of bulk-seeded "known" cards are spread evenly across this
- * many days (starting tomorrow) instead of all falling on FSRS's single shared
- * ~1-week interval. Without this, a big placement-test pass piles every seeded
- * card onto one or two days: a wall of "reviews" for material the learner just
- * tested *out* of, defeating the point of the test. Kept one short of the
- * forecast's 14-day horizon so today stays clear and nothing spills past the
- * chart's edge. It is its own knob, not the forecast's: a longer chart shouldn't
- * push confirmations further out.
+ * Confirming reviews of bulk-seeded "known" cards are capped at this many per
+ * day (starting tomorrow) instead of all falling on FSRS's single shared
+ * ~1-week interval. A fixed daily *rate*, not a fixed window: a strong
+ * placement pass can seed several hundred cards, and any fixed window scales
+ * the daily pile with the batch (each failed confirmation also feeds next-day
+ * relearning on top). The cap bounds the daily toll no matter how much the
+ * learner tests out of; a big batch just takes more days, and the forecast's
+ * "later" bucket counts any spill past its chart.
  */
-export const SEED_DISPERSAL_DAYS = 13;
+export const SEED_CONFIRMATIONS_PER_DAY = 20;
 
 /**
  * Pure: given existing card rows, return updated rows for the still-**new**
  * (`reps === 0`) ids only. Cards with real review history are left untouched,
- * so a learner's progress is never clobbered. Confirming reviews are staggered
- * round-robin across {@link SEED_DISPERSAL_DAYS} so a whole batch doesn't fall
- * due together (the placement-test "clump"). Only the *due date* is chosen here;
+ * so a learner's progress is never clobbered. Confirming reviews are dripped at
+ * {@link SEED_CONFIRMATIONS_PER_DAY}, in input order, so a whole batch doesn't
+ * fall due together (the placement-test "clump"). Only the *due date* is chosen here;
  * the FSRS-derived stability is kept intact, and resurfacing a touch early/late
  * is handled cleanly on the next grade.
  */
@@ -64,7 +64,8 @@ export const promoteToKnown = (
   for (const record of records) {
     if (!target.has(record.itemId) || record.fsrs.reps > 0) continue;
     const card = knownSeedCard(now);
-    const offsetDays = (updated.length % SEED_DISPERSAL_DAYS) + 1;
+    const offsetDays =
+      Math.floor(updated.length / SEED_CONFIRMATIONS_PER_DAY) + 1;
     const dueMs = nowMs + offsetDays * DAY_MS;
     // Sync `scheduled_days` so the stored card stays self-consistent
     // (last_review + scheduled_days === due).
